@@ -67,7 +67,10 @@ colunas dançam a cada dígito.
 
 Prontos na fase 0: `Button`, `TextField`, `Card`, `OfflineBanner`.
 
-Especificados no design system e pendentes por fase:
-`StatCard`, `ProgressRing`, `StreakBadge` (fase 5) · `SetRow`, `RestTimer`,
-`NumberStepper` (fase 2) · `QuickEntrySheet`, `CategoryPill`, `BudgetBar`
-(fase 3) · `DayStrip`, `EmptyState`, `Skeleton`, `SyncIndicator` (fase 1/5).
+Prontos nas fases 2–3: `RestTimer`, `NumberStepper`, `SyncIndicator`,
+`QuickEntrySheet`, `CategoryPill`, `BudgetBar`.
+
+Prontos na fase 5: `StatCard`, `ProgressRing`, `StreakBadge`, `DayStrip`,
+`EmptyState`, `Skeleton`.
+
+Pendente: `SetRow` (extração futura do executor).

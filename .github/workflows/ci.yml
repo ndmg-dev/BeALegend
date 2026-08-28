@@ -115,6 +115,7 @@ jobs:
           # em si é coberto por apps/api/tests/test_rate_limit.py.
           RATE_LIMIT_REGISTER: 1000/minute
           RATE_LIMIT_LOGIN: 1000/minute
+          RATE_LIMIT_REFRESH: 1000/minute
         run: |
           uvicorn app.main:app --port 8000 &
           for i in $(seq 1 30); do

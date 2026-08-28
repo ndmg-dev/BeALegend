@@ -27,6 +27,201 @@ export const exerciseSchema = z.object({
 
 export type Exercise = z.infer<typeof exerciseSchema>;
 
+// ---------------------------------------------------------------------------
+// Treino — plano semanal (somente leitura pelo cliente) e execução
+// ---------------------------------------------------------------------------
+
+const syncFields = {
+  row_version: z.number(),
+  deleted_at: z.string().nullable(),
+  updated_at: z.string(),
+  criado_em: z.string(),
+};
+
+export const trainingPlanSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  nome: z.string(),
+  objetivo: z.string().nullable(),
+  ativo: z.boolean(),
+  ...syncFields,
+});
+export type TrainingPlan = z.infer<typeof trainingPlanSchema>;
+
+export const planDaySchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  plan_id: z.string().uuid(),
+  dia_semana: z.enum(['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo']),
+  tipo: z.enum(['forca', 'cardio', 'hiit', 'descanso']),
+  foco: z.string().nullable(),
+  duracao_min: z.string().nullable(),
+  intensidade: z.string().nullable(),
+  observacoes: z.string().nullable(),
+  ...syncFields,
+});
+export type PlanDay = z.infer<typeof planDaySchema>;
+
+export const planItemSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  plan_day_id: z.string().uuid(),
+  exercise_id: z.string().uuid().nullable(),
+  cardio_protocol_id: z.string().uuid().nullable(),
+  ordem: z.number(),
+  series_min: z.number().nullable(),
+  series_max: z.number().nullable(),
+  reps_min: z.number().nullable(),
+  reps_max: z.number().nullable(),
+  unidade: z.enum(['reps', 'segundos']),
+  unilateral: z.boolean(),
+  rir_min: z.number().nullable(),
+  rir_max: z.number().nullable(),
+  descanso_seg: z.number().nullable(),
+  notas: z.string().nullable(),
+  ...syncFields,
+});
+export type PlanItem = z.infer<typeof planItemSchema>;
+
+export const cardioProtocolSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid().nullable(),
+  is_global: z.boolean(),
+  nome: z.string(),
+  aquecimento: z.string().nullable(),
+  parte_principal: z.string().nullable(),
+  recuperacao: z.string().nullable(),
+  desaquecimento: z.string().nullable(),
+  rpe_alvo: z.string().nullable(),
+  observacao: z.string().nullable(),
+  ...syncFields,
+});
+export type CardioProtocol = z.infer<typeof cardioProtocolSchema>;
+
+export const sessionSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  plan_day_id: z.string().uuid().nullable(),
+  data: z.string(),
+  status: z.enum(['planejada', 'em_curso', 'concluida', 'pulada']),
+  duracao_real_min: z.number().nullable(),
+  rpe_geral: z.number().nullable(),
+  notas: z.string().nullable(),
+  ...syncFields,
+});
+export type Session = z.infer<typeof sessionSchema>;
+
+export const setLogSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  session_id: z.string().uuid(),
+  exercise_id: z.string().uuid(),
+  numero_serie: z.number(),
+  reps: z.number(),
+  carga_kg: z.number(),
+  rir: z.number().nullable(),
+  concluido_em: z.string(),
+  ...syncFields,
+});
+export type SetLog = z.infer<typeof setLogSchema>;
+
+// ---------------------------------------------------------------------------
+// Finanças — dinheiro sempre em centavos inteiros
+// ---------------------------------------------------------------------------
+
+export const accountSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), nome: z.string(),
+  tipo: z.enum(['conta', 'cartao', 'carteira']), saldo_inicial_centavos: z.number().int(),
+  ...syncFields,
+});
+export type Account = z.infer<typeof accountSchema>;
+
+export const categorySchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), nome: z.string(),
+  tipo: z.enum(['receita', 'despesa']), cor: z.string().nullable(),
+  icone: z.string().nullable(), pai_id: z.string().uuid().nullable(), ...syncFields,
+});
+export type Category = z.infer<typeof categorySchema>;
+
+export const recurringSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), template_json: z.record(z.unknown()),
+  regra_rrule: z.string(), proxima_ocorrencia: z.string().nullable(), ...syncFields,
+});
+export type Recurring = z.infer<typeof recurringSchema>;
+
+export const financeTransactionSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), account_id: z.string().uuid(),
+  category_id: z.string().uuid().nullable(), valor_centavos: z.number().int().positive(),
+  tipo: z.enum(['receita', 'despesa', 'transferencia']), data: z.string(),
+  descricao: z.string().nullable(), recorrente_id: z.string().uuid().nullable(),
+  tags: z.array(z.string()), ...syncFields,
+});
+export type FinanceTransaction = z.infer<typeof financeTransactionSchema>;
+
+export const budgetSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), category_id: z.string().uuid(),
+  mes_ano: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  limite_centavos: z.number().int().positive(), ...syncFields,
+});
+export type Budget = z.infer<typeof budgetSchema>;
+
+// ---------------------------------------------------------------------------
+// Nutrição — aderência e regularidade, sem calorias/macros na v1
+// ---------------------------------------------------------------------------
+
+export const mealPlanSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), nome: z.string(), ativo: z.boolean(),
+  ...syncFields,
+});
+export type MealPlan = z.infer<typeof mealPlanSchema>;
+
+export const mealSlotSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), meal_plan_id: z.string().uuid(),
+  nome: z.string(), horario_alvo: z.string().nullable(), descricao: z.string().nullable(),
+  ordem: z.number().int(), ...syncFields,
+});
+export type MealSlot = z.infer<typeof mealSlotSchema>;
+
+export const mealLogSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), data: z.string(),
+  slot_id: z.string().uuid().nullable(), horario: z.string(), descricao: z.string(),
+  foto_url: z.string().nullable(), aderencia: z.enum(['dentro', 'parcial', 'fora']),
+  notas: z.string().nullable(), tags: z.array(z.string()), ...syncFields,
+});
+export type MealLog = z.infer<typeof mealLogSchema>;
+
+export const waterLogSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), data: z.string(),
+  ml: z.number().int().positive(), registrado_em: z.string(), ...syncFields,
+});
+export type WaterLog = z.infer<typeof waterLogSchema>;
+
+// ---------------------------------------------------------------------------
+// Rotina e metas — progresso sempre derivado de métricas reais
+// ---------------------------------------------------------------------------
+
+export const habitSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), nome: z.string(),
+  icone: z.string().nullable(), frequencia_rrule: z.string(),
+  meta_por_semana: z.number().int(), ativo: z.boolean(), ...syncFields,
+});
+export type Habit = z.infer<typeof habitSchema>;
+
+export const habitCheckinSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), habit_id: z.string().uuid(),
+  data: z.string(), concluido: z.boolean(), valor: z.number().nullable(), ...syncFields,
+});
+export type HabitCheckin = z.infer<typeof habitCheckinSchema>;
+
+export const goalSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), titulo: z.string(),
+  dominio: z.enum(['treino', 'nutricao', 'financas', 'rotina']),
+  tipo: z.enum(['numerica', 'binaria', 'habito']), alvo: z.number().positive(),
+  unidade: z.string().nullable(), prazo: z.string().nullable(), metrica_ref: z.string(),
+  status: z.enum(['ativa', 'concluida', 'arquivada']), ...syncFields,
+});
+export type Goal = z.infer<typeof goalSchema>;
+
 export const operacaoSchema = z.enum(['create', 'update', 'delete']);
 export type Operacao = z.infer<typeof operacaoSchema>;
 
@@ -60,17 +255,113 @@ class BeALegendDB extends Dexie {
   exercise!: EntityTable<Exercise, 'id'>;
   outbox!: EntityTable<OutboxItem, 'id_local'>;
   meta!: EntityTable<MetaEntry, 'chave'>;
+  training_plan!: EntityTable<TrainingPlan, 'id'>;
+  plan_day!: EntityTable<PlanDay, 'id'>;
+  plan_item!: EntityTable<PlanItem, 'id'>;
+  cardio_protocol!: EntityTable<CardioProtocol, 'id'>;
+  session!: EntityTable<Session, 'id'>;
+  set_log!: EntityTable<SetLog, 'id'>;
+  account!: EntityTable<Account, 'id'>;
+  category!: EntityTable<Category, 'id'>;
+  recurring!: EntityTable<Recurring, 'id'>;
+  finance_transaction!: EntityTable<FinanceTransaction, 'id'>;
+  budget!: EntityTable<Budget, 'id'>;
+  meal_plan!: EntityTable<MealPlan, 'id'>;
+  meal_slot!: EntityTable<MealSlot, 'id'>;
+  meal_log!: EntityTable<MealLog, 'id'>;
+  water_log!: EntityTable<WaterLog, 'id'>;
+  habit!: EntityTable<Habit, 'id'>;
+  habit_checkin!: EntityTable<HabitCheckin, 'id'>;
+  goal!: EntityTable<Goal, 'id'>;
 
   constructor() {
     super('bealegend');
 
     // v1 — fase 1: catálogo de exercícios, outbox e o cursor de sync.
-    // As entidades de treino, finanças, nutrição e rotina entram em versões
-    // seguintes, cada uma no seu `version()`.
     this.version(1).stores({
       exercise: 'id, nome, row_version, deleted_at',
       outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
       meta: 'chave',
+    });
+
+    // v2 — fase 2: plano semanal (somente leitura) e execução de sessão.
+    // Dexie exige o schema completo em cada version(), não só o delta.
+    this.version(2).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      // 'ativo' não entra no índice: IndexedDB não aceita boolean como chave.
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+    });
+
+    // v3 — fase 3: contas, categorias, lançamentos, orçamentos e recorrências.
+    this.version(3).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+    });
+
+    // v4 — fase 4: plano alimentar, refeições registradas e hidratação.
+    this.version(4).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+      meal_plan: 'id, ativo, row_version, deleted_at',
+      meal_slot: 'id, meal_plan_id, ordem, row_version, deleted_at',
+      meal_log: 'id, data, slot_id, horario, row_version, deleted_at',
+      water_log: 'id, data, registrado_em, row_version, deleted_at',
+    });
+
+    // v5 — fase 5: hábitos, check-ins e metas calculadas.
+    this.version(5).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+      meal_plan: 'id, ativo, row_version, deleted_at',
+      meal_slot: 'id, meal_plan_id, ordem, row_version, deleted_at',
+      meal_log: 'id, data, slot_id, horario, row_version, deleted_at',
+      water_log: 'id, data, registrado_em, row_version, deleted_at',
+      habit: 'id, nome, ativo, row_version, deleted_at',
+      habit_checkin: 'id, habit_id, data, concluido, row_version, deleted_at',
+      goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
     });
   }
 }
@@ -96,7 +387,30 @@ export function parseOuDescartar<T>(schema: z.ZodType<T>, valor: unknown): T | n
 }
 
 export async function limparTudo(): Promise<void> {
-  await db.transaction('rw', db.exercise, db.outbox, db.meta, async () => {
-    await Promise.all([db.exercise.clear(), db.outbox.clear(), db.meta.clear()]);
+  const tabelas = [
+    db.exercise,
+    db.outbox,
+    db.meta,
+    db.training_plan,
+    db.plan_day,
+    db.plan_item,
+    db.cardio_protocol,
+    db.session,
+    db.set_log,
+    db.account,
+    db.category,
+    db.recurring,
+    db.finance_transaction,
+    db.budget,
+    db.meal_plan,
+    db.meal_slot,
+    db.meal_log,
+    db.water_log,
+    db.habit,
+    db.habit_checkin,
+    db.goal,
+  ] as const;
+  await db.transaction('rw', tabelas, async () => {
+    await Promise.all(tabelas.map((t) => t.clear()));
   });
 }

@@ -67,6 +67,29 @@ async def _guardar_resultado(
     )
 
 
+async def _validar_referencia(
+    session: AsyncSession, entidade: SyncEntity, validado: Any
+) -> str | None:
+    """Confere que a linha referenciada existe e pertence ao usuario atual.
+
+    A conexao ja esta com o contexto de RLS do usuario ligado (ver
+    ``app/db.py``), entao um SELECT simples e suficiente: a policy filtra por
+    si so. Sem isto, um set_log poderia apontar para o session_id de outro
+    usuario adivinhado — nao vazaria dado (RLS ainda protege a leitura), mas
+    criaria uma referencia orfa e inconsistente.
+    """
+    for campo, modelo_pai in entidade.referencias:
+        valor = getattr(validado, campo, None)
+        if valor is None:
+            continue
+        existe = await session.scalar(
+            select(modelo_pai.id).where(modelo_pai.id == valor, modelo_pai.deleted_at.is_(None))
+        )
+        if existe is None:
+            return f"'{campo}' nao aponta para um registro existente e visivel para voce."
+    return None
+
+
 def _rejeitar(op: SyncOperation, title: str, detail: str) -> SyncResult:
     return SyncResult(
         idempotency_key=op.idempotency_key,
@@ -110,6 +133,11 @@ async def aplicar_operacao(
             except ValidationError as e:
                 return _rejeitar(op, "Payload invalido", e.errors()[0]["msg"])
 
+            if entidade.referencias:
+                erro = await _validar_referencia(session, entidade, validado)
+                if erro is not None:
+                    return _rejeitar(op, "Referencia invalida", erro)
+
             campos = validado.model_dump(exclude_none=True)
             campos.pop("id", None)
             linha = model(id=op.id, user_id=user_id, **campos)
@@ -135,6 +163,11 @@ async def aplicar_operacao(
             patch = entidade.schema_patch.model_validate(op.payload)
         except ValidationError as e:
             return _rejeitar(op, "Payload invalido", e.errors()[0]["msg"])
+
+        if entidade.referencias:
+            erro = await _validar_referencia(session, entidade, patch)
+            if erro is not None:
+                return _rejeitar(op, "Referencia invalida", erro)
 
         # exclude_unset: so os campos que o dispositivo realmente mexeu. E o
         # que faz o LWW ser por campo, e nao pela linha inteira.

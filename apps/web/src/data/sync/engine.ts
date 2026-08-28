@@ -1,7 +1,30 @@
 import { z } from 'zod';
 import { request } from '@/data/api/client';
 import { ApiError, NetworkError } from '@/data/api/problem';
-import { META_CURSOR, META_ULTIMO_SYNC, db, exerciseSchema } from '@/data/db/schema';
+import {
+  META_CURSOR,
+  META_ULTIMO_SYNC,
+  accountSchema,
+  budgetSchema,
+  categorySchema,
+  cardioProtocolSchema,
+  db,
+  exerciseSchema,
+  planDaySchema,
+  planItemSchema,
+  financeTransactionSchema,
+  goalSchema,
+  habitCheckinSchema,
+  habitSchema,
+  mealLogSchema,
+  mealPlanSchema,
+  mealSlotSchema,
+  recurringSchema,
+  sessionSchema,
+  setLogSchema,
+  trainingPlanSchema,
+  waterLogSchema,
+} from '@/data/db/schema';
 import { ehErroPermanente, msAteProximaTentativa, podeTentar } from '@/domain/sync/backoff';
 import { reconciliarLinha, type LinhaSincronizavel } from '@/domain/sync/reconcile';
 import { isOnline } from '@/platform/network';
@@ -37,8 +60,50 @@ const deltaSchema = z.object({
 });
 
 /** Schemas por entidade — o dado do servidor é validado antes de tocar o Dexie. */
-const SCHEMAS = { exercise: exerciseSchema } as const;
+const SCHEMAS = {
+  exercise: exerciseSchema,
+  training_plan: trainingPlanSchema,
+  plan_day: planDaySchema,
+  plan_item: planItemSchema,
+  cardio_protocol: cardioProtocolSchema,
+  session: sessionSchema,
+  set_log: setLogSchema,
+  account: accountSchema,
+  category: categorySchema,
+  recurring: recurringSchema,
+  transaction: financeTransactionSchema,
+  budget: budgetSchema,
+  meal_plan: mealPlanSchema,
+  meal_slot: mealSlotSchema,
+  meal_log: mealLogSchema,
+  water_log: waterLogSchema,
+  habit: habitSchema,
+  habit_checkin: habitCheckinSchema,
+  goal: goalSchema,
+} as const;
 type EntidadeConhecida = keyof typeof SCHEMAS;
+
+const TABELAS = {
+  exercise: db.exercise,
+  training_plan: db.training_plan,
+  plan_day: db.plan_day,
+  plan_item: db.plan_item,
+  cardio_protocol: db.cardio_protocol,
+  session: db.session,
+  set_log: db.set_log,
+  account: db.account,
+  category: db.category,
+  recurring: db.recurring,
+  transaction: db.finance_transaction,
+  budget: db.budget,
+  meal_plan: db.meal_plan,
+  meal_slot: db.meal_slot,
+  meal_log: db.meal_log,
+  water_log: db.water_log,
+  habit: db.habit,
+  habit_checkin: db.habit_checkin,
+  goal: db.goal,
+} as const;
 
 function ehEntidadeConhecida(nome: string): nome is EntidadeConhecida {
   return nome in SCHEMAS;
@@ -196,7 +261,7 @@ async function aplicarEntidades(
       continue;
     }
 
-    const tabela = db[resultado.entidade];
+    const tabela = TABELAS[resultado.entidade];
     const remota = validada.data as unknown as LinhaSincronizavel;
     const local = (await tabela.get(remota.id)) as unknown as LinhaSincronizavel | undefined;
     const decisao = reconciliarLinha(remota, local, pendencias.get(remota.id) ?? []);
@@ -228,7 +293,7 @@ export async function puxar(): Promise<number> {
         continue;
       }
 
-      const tabela = db[entidade];
+      const tabela = TABELAS[entidade];
       const schema = SCHEMAS[entidade];
 
       await db.transaction('rw', tabela, async () => {

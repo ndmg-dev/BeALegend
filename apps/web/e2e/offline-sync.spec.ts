@@ -28,7 +28,11 @@ async function criarConta(page: Page): Promise<void> {
 async function adicionar(page: Page, nome: string): Promise<void> {
   await page.getByLabel('Novo exercício').fill(nome);
   await page.getByRole('button', { name: 'Adicionar' }).click();
-  await expect(page.getByRole('listitem').filter({ hasText: nome })).toBeVisible();
+  // O seed de treino pode ter um exercício global com o mesmo nome. O item
+  // criado offline é inequivocamente o que ainda anuncia "não enviado".
+  await expect(
+    page.getByRole('listitem').filter({ hasText: nome }).filter({ hasText: 'não enviado' }),
+  ).toBeVisible();
 }
 
 /** O que o servidor realmente guardou, lido fora do app. */
@@ -55,7 +59,7 @@ test('registro feito offline chega íntegro ao servidor quando a rede volta', as
   context,
 }) => {
   await criarConta(page);
-  await page.getByRole('link', { name: 'Treino' }).click();
+  await page.goto('/treino/exercicios');
 
   await context.setOffline(true);
 
@@ -78,7 +82,7 @@ test('registro feito offline chega íntegro ao servidor quando a rede volta', as
 
 test('o registro sobrevive ao reload feito ainda offline', async ({ page, context }) => {
   await criarConta(page);
-  await page.getByRole('link', { name: 'Treino' }).click();
+  await page.goto('/treino/exercicios');
 
   await context.setOffline(true);
   await adicionar(page, 'Remada curvada');
@@ -86,8 +90,10 @@ test('o registro sobrevive ao reload feito ainda offline', async ({ page, contex
   // O Dexie é persistente: fechar o app no meio do treino não pode perder a
   // série que acabou de ser registrada.
   await page.reload();
-  await page.getByRole('link', { name: 'Treino' }).click();
-  await expect(page.getByRole('listitem').filter({ hasText: 'Remada curvada' })).toBeVisible();
+  await page.goto('/treino/exercicios');
+  await expect(
+    page.getByRole('listitem').filter({ hasText: 'Remada curvada' }).filter({ hasText: 'não enviado' }),
+  ).toBeVisible();
 
   await context.setOffline(false);
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
@@ -101,7 +107,7 @@ test('um mesmo registro não duplica quando o sync roda várias vezes', async ({
   context,
 }) => {
   await criarConta(page);
-  await page.getByRole('link', { name: 'Treino' }).click();
+  await page.goto('/treino/exercicios');
 
   await context.setOffline(true);
   await adicionar(page, 'Desenvolvimento militar');

@@ -7,6 +7,9 @@ próprio, deploy em VPS.
 - Design system: [`docs/design-system.md`](docs/design-system.md)
 - Segurança e isolamento: [`docs/security.md`](docs/security.md)
 - Camada offline: [`docs/offline-sync.md`](docs/offline-sync.md)
+- Finanças: [`docs/finance.md`](docs/finance.md)
+- Nutrição: [`docs/nutrition.md`](docs/nutrition.md)
+- Rotina, metas e Hoje: [`docs/routine-dashboard.md`](docs/routine-dashboard.md)
 
 ## Estado
 
@@ -14,10 +17,10 @@ próprio, deploy em VPS.
 |---|---|---|
 | 0 | Monorepo, Docker Compose, FastAPI + Postgres + Alembic, auth com RLS, PWA com tokens, CI | ✅ |
 | 1 | Camada offline: Dexie, outbox, sync, idempotência, UUIDv7 | ✅ |
-| 2 | Treino: seed da planilha, executor de sessão, progressão | — |
-| 3 | Finanças | — |
-| 4 | Nutrição | — |
-| 5 | Rotina, metas, tela Hoje | — |
+| 2 | Treino: seed da planilha, executor de sessão, progressão | ✅ |
+| 3 | Finanças | ✅ |
+| 4 | Nutrição | ✅ |
+| 5 | Rotina, metas, tela Hoje | ✅ |
 | 6 | Web Push, resumo semanal, hardening | — |
 
 ## Repositório
@@ -88,7 +91,8 @@ worker só precacheia o shell no build:
 ```bash
 docker compose -f infra/docker-compose.yml up -d db
 cd apps/api && alembic upgrade head
-RATE_LIMIT_REGISTER=1000/minute uvicorn app.main:app &
+RATE_LIMIT_REGISTER=1000/minute RATE_LIMIT_LOGIN=1000/minute \
+RATE_LIMIT_REFRESH=1000/minute uvicorn app.main:app &
 npm run test:e2e         # Playwright sobe o Vite sozinho
 ```
 

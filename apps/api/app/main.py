@@ -7,7 +7,17 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.errors import CONTENT_TYPE, register_error_handlers
 from app.rate_limit import limiter
-from app.routers import auth, exercises, health, sync
+from app.routers import (
+    auth,
+    dashboard,
+    exercises,
+    finance,
+    health,
+    nutrition,
+    routine,
+    sync,
+    training,
+)
 
 settings = get_settings()
 
@@ -49,3 +59,8 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(exercises.router)
 app.include_router(sync.router)
+app.include_router(training.router)
+app.include_router(finance.router)
+app.include_router(nutrition.router)
+app.include_router(routine.router)
+app.include_router(dashboard.router)

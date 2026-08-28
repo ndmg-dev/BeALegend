@@ -80,7 +80,14 @@ async def _clean_db():
     engine = create_async_engine(OWNER_URL)
     async with engine.begin() as conn:
         await conn.execute(
-            text("TRUNCATE idempotency_record, exercise, refresh_token, app_user CASCADE")
+            text(
+                'TRUNCATE idempotency_record, habit_checkin, habit, goal, '
+                'water_log, meal_log, meal_slot, meal_plan, '
+                'budget, "transaction", recurring, category, account, '
+                "set_log, cardio_log, body_metric, session, "
+                "plan_item, plan_day, training_plan, cardio_protocol, exercise, "
+                "refresh_token, app_user CASCADE"
+            )
         )
     await engine.dispose()
     yield

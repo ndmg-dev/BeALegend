@@ -148,7 +148,8 @@ budget        (id, user_id, category_id, mes_ano, limite_centavos)
 recurring     (id, user_id, template_json, regra_rrule, proxima_ocorrencia)
 ```
 
-**Dinheiro sempre em inteiros (centavos).** Nunca float. `Decimal`/`Numeric(12,2)` no Postgres, `number` de centavos no cliente.
+**Dinheiro sempre em inteiros (centavos).** Nunca float. `BIGINT` no Postgres,
+`number` inteiro seguro no cliente.
 
 ### 4.4 Rotina e metas
 
