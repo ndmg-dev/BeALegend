@@ -22,7 +22,7 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
+      - run: npm run test:coverage
       - run: npm run build
 
   api:
@@ -62,3 +62,73 @@ jobs:
           TEST_DATABASE_OWNER_URL: postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend_test
           TEST_DATABASE_URL: postgresql+asyncpg://bealegend_app:changeme_app@localhost:5432/bealegend_test
           JWT_SECRET: ci-secret
+
+  e2e:
+    name: e2e — fluxos críticos contra o stack real
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bealegend
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: bealegend
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U bealegend"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm install
+      - run: pip install -e ".[dev]"
+        working-directory: apps/api
+
+      - name: prepara o banco
+        env:
+          PGPASSWORD: changeme
+        run: |
+          psql -h localhost -U bealegend -d bealegend -c             "CREATE ROLE bealegend_app LOGIN PASSWORD 'changeme_app';"
+
+      - name: migrations
+        working-directory: apps/api
+        env:
+          DATABASE_OWNER_URL: postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend
+          DATABASE_URL: postgresql+asyncpg://bealegend_app:changeme_app@localhost:5432/bealegend
+        run: alembic upgrade head
+
+      - name: sobe a API
+        working-directory: apps/api
+        env:
+          DATABASE_OWNER_URL: postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend
+          DATABASE_URL: postgresql+asyncpg://bealegend_app:changeme_app@localhost:5432/bealegend
+          JWT_SECRET: e2e-secret
+          CORS_ORIGINS: http://localhost:5173
+          # O rate limit real derrubaria a suíte no quinto cadastro. O limite
+          # em si é coberto por apps/api/tests/test_rate_limit.py.
+          RATE_LIMIT_REGISTER: 1000/minute
+          RATE_LIMIT_LOGIN: 1000/minute
+        run: |
+          uvicorn app.main:app --port 8000 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8000/readyz && break
+            sleep 1
+          done
+
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

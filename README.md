@@ -71,18 +71,31 @@ npm run gen:types
 ## Testes
 
 ```bash
-npm test                 # Vitest — domain/ com cobertura alta
-npm run test:e2e         # Playwright
+npm test                 # Vitest
+npm run test:coverage    # idem, com o piso de cobertura de domain/
 cd apps/api && pytest    # exige Postgres de verdade: RLS não existe em SQLite
 ```
 
 Variáveis dos testes da API (`TEST_DATABASE_OWNER_URL`, `TEST_DATABASE_URL`)
 apontam para um banco de teste; o padrão é `bealegend_test` em localhost.
 
+Os E2E exercitam auth de verdade — cookie de refresh, rotação, sessão que
+sobrevive ao reload — então precisam do stack completo no ar:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d db
+cd apps/api && alembic upgrade head
+RATE_LIMIT_REGISTER=1000/minute uvicorn app.main:app &
+npm run test:e2e         # Playwright sobe o Vite sozinho
+```
+
+Sem a API, o `globalSetup` falha com a instrução acima em vez de deixar os
+testes passarem pelo motivo errado.
+
 ## Deploy
 
 ```bash
-cp infra/.env.example infra/.env       # preencha as senhas e o JWT_SECRET
+./infra/gen-secrets.sh bealegend.exemplo.com   # gera infra/.env com senhas e chaves VAPID
 docker compose -f infra/docker-compose.yml up -d
 ```
 
