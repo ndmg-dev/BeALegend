@@ -18,6 +18,7 @@
     "@bealegend/shared-types": "*",
     "@tanstack/react-query": "^5.59.0",
     "dexie": "^4.0.8",
+    "dexie-react-hooks": "^4.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2",
@@ -46,6 +47,8 @@
     "typescript": "^5.6.2",
     "vite": "^5.4.8",
     "vite-plugin-pwa": "^0.20.5",
-    "vitest": "^2.1.2"
+    "vitest": "^2.1.2",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1"
   }
 }

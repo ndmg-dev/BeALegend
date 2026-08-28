@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NetworkError } from './problem';
 import { request, setAccessToken } from './client';
 
 export const accessTokenSchema = z.object({
@@ -53,8 +54,14 @@ export function fetchMe(): Promise<User> {
   return request('/auth/me', { schema: userSchema });
 }
 
+export type ResultadoRestore =
+  | { tipo: 'autenticado'; user: User }
+  | { tipo: 'anonimo' }
+  /** Sem rede: não dá para saber se a sessão vale. Não é motivo para deslogar. */
+  | { tipo: 'offline' };
+
 /** Tenta ressuscitar a sessão no boot, usando só o cookie de refresh. */
-export async function restoreSession(): Promise<User | null> {
+export async function restoreSession(): Promise<ResultadoRestore> {
   try {
     const data = await request('/auth/refresh', {
       method: 'POST',
@@ -62,9 +69,12 @@ export async function restoreSession(): Promise<User | null> {
       skipRefresh: true,
     });
     setAccessToken(data.access_token);
-    return await fetchMe();
-  } catch {
+    return { tipo: 'autenticado', user: await fetchMe() };
+  } catch (erro) {
     setAccessToken(null);
-    return null;
+    // Falha de rede não é 401. Deslogar aqui seria expulsar o usuário do app
+    // exatamente na academia sem sinal — onde ele mais precisa registrar.
+    if (erro instanceof NetworkError) return { tipo: 'offline' };
+    return { tipo: 'anonimo' };
   }
 }
