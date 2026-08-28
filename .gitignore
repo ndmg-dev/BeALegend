@@ -14,3 +14,4 @@ playwright-report/
 test-results/
 infra/backups/
 .DS_Store
+*.egg-info/
