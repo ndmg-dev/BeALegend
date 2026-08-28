@@ -1,0 +1,122 @@
+/* Tokens do design system — dark-first.
+   Origem: docs/design/Design System.dc.html (rampas de 10 passos por matiz).
+   Não escreva cor literal em componente: use as variáveis daqui. */
+
+:root {
+  /* ---------- Treino — índigo profundo, frio e sólido ---------- */
+  --tr-50: #eceefb;  --tr-100: #d6dbf7; --tr-200: #b0b8ee; --tr-300: #8892e2;
+  --tr-400: #6470d6; --tr-500: #4a56c4; --tr-600: #3b449e; --tr-700: #2e357a;
+  --tr-800: #212656; --tr-900: #151834;
+
+  /* ---------- Nutrição — verde terroso, não neon ---------- */
+  --nu-50: #e9f2eb;  --nu-100: #cfe2d3; --nu-200: #a7c9ae; --nu-300: #7dae88;
+  --nu-400: #5d9569; --nu-500: #487c54; --nu-600: #3a6544; --nu-700: #2d4e35;
+  --nu-800: #213a27; --nu-900: #152418;
+
+  /* ---------- Finanças — âmbar / dourado ---------- */
+  --fi-50: #fbf1de;  --fi-100: #f6e0b8; --fi-200: #ecc37e; --fi-300: #dfa64c;
+  --fi-400: #cf8f2c; --fi-500: #b57821; --fi-600: #93601b; --fi-700: #714a16;
+  --fi-800: #513510; --fi-900: #33210a;
+
+  /* ---------- Rotina & metas — roxo suave, quase neutro ---------- */
+  --ro-50: #f0ecf7;  --ro-100: #ded6ee; --ro-200: #c2b4de; --ro-300: #a390cb;
+  --ro-400: #8873b8; --ro-500: #715ea0; --ro-600: #5b4b82; --ro-700: #463a64;
+  --ro-800: #322949; --ro-900: #1f1a2e;
+
+  /* ---------- Neutro — cinza levemente frio ---------- */
+  --ne-50: #f7f8fa;  --ne-100: #eef0f4; --ne-200: #dde0e7; --ne-300: #c0c5d0;
+  --ne-400: #949bab; --ne-500: #6b7383; --ne-600: #4e5666; --ne-700: #39404e;
+  --ne-800: #232833; --ne-900: #12151b;
+
+  /* ---------- Escala tipográfica (7 passos) ---------- */
+  --fs-display: 3.5rem;  --lh-display: 1;    --fw-display: 700;
+  --fs-title: 1.75rem;   --lh-title: 1.15;   --fw-title: 600;
+  --fs-heading: 1.375rem;--lh-heading: 1.2;  --fw-heading: 600;
+  --fs-subhead: 1.0625rem;--lh-subhead: 1.3; --fw-subhead: 600;
+  --fs-body: 0.9375rem;  --lh-body: 1.45;    --fw-body: 400;
+  --fs-label: 0.8125rem; --lh-label: 1.35;   --fw-label: 500;
+  --fs-caption: 0.6875rem;--lh-caption: 1.3; --fw-caption: 500;
+
+  --font-sans: Inter, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+  /* ---------- Raios ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* ---------- Movimento ---------- */
+  --dur-micro: 120ms;
+  --dur-transition: 200ms;
+  --dur-sheet: 320ms;
+  --ease-in: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---------- Alvo de toque ---------- */
+  --tap-min: 48px;
+}
+
+/* ================= Tema escuro (padrão) ================= */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e1116;
+  --surface: #161a21;
+  --surface-raised: #1d222b;
+  --surface-sunken: #12151b;
+  --border: #2a303b;
+  --border-subtle: #1f242d;
+
+  --text: var(--ne-50);
+  --text-secondary: var(--ne-300);
+  --text-muted: var(--ne-400);
+  --text-inverse: var(--ne-900);
+
+  --success: #7dae88;      --success-bg: #17251b;
+  --warning: #dfa64c;      --warning-bg: #2a1f0e;
+  --danger: #e2807a;       --danger-bg: #2c1616;
+  --info: #8892e2;         --info-bg: #171b33;
+
+  --budget-ok: #7dae88;
+  --budget-over: #e2807a;
+
+  --accent: var(--tr-400);
+  --accent-contrast: #ffffff;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.5);
+}
+
+/* ================= Tema claro ================= */
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eef0f4;
+  --border: #dde0e7;
+  --border-subtle: #eef0f4;
+
+  --text: var(--ne-900);
+  --text-secondary: var(--ne-600);
+  --text-muted: var(--ne-500);
+  --text-inverse: var(--ne-50);
+
+  --success: #3a6544;      --success-bg: #e9f2eb;
+  --warning: #93601b;      --warning-bg: #fbf1de;
+  --danger: #a33b34;       --danger-bg: #fbeae9;
+  --info: #3b449e;         --info-bg: #eceefb;
+
+  --budget-ok: #3a6544;
+  --budget-over: #a33b34;
+
+  --accent: var(--tr-500);
+  --accent-contrast: #ffffff;
+
+  --shadow-sm: 0 1px 2px rgb(18 21 27 / 0.06);
+  --shadow-md: 0 4px 12px rgb(18 21 27 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(18 21 27 / 0.12);
+}

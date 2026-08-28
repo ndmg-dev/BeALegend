@@ -1,0 +1,19 @@
+{
+  "name": "bealegend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": ["apps/web", "packages/*"],
+  "scripts": {
+    "dev": "npm run dev -w @bealegend/web",
+    "build": "npm run build -w @bealegend/shared-types && npm run build -w @bealegend/web",
+    "lint": "npm run lint -w @bealegend/web",
+    "typecheck": "npm run typecheck -w @bealegend/web",
+    "test": "npm run test -w @bealegend/web",
+    "test:e2e": "npm run test:e2e -w @bealegend/web",
+    "gen:types": "npm run gen:types -w @bealegend/shared-types"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
+}

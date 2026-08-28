@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dev-dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+coverage/
+.env
+.env.local
+*.local
+playwright-report/
+test-results/
+infra/backups/
+.DS_Store

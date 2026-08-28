@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: web — lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm install
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  api:
+    name: api — lint e testes com Postgres real
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bealegend
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: bealegend_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U bealegend"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e ".[dev]"
+      # A role de runtime existe separada da owner de propósito: é o que faz
+      # o RLS valer. Sem ela, os testes de isolamento não provam nada.
+      - name: cria a role de runtime
+        env:
+          PGPASSWORD: changeme
+        run: |
+          psql -h localhost -U bealegend -d bealegend_test -c \
+            "CREATE ROLE bealegend_app LOGIN PASSWORD 'changeme_app';"
+      - run: ruff check .
+      - run: pytest -q
+        env:
+          TEST_DATABASE_OWNER_URL: postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend_test
+          TEST_DATABASE_URL: postgresql+asyncpg://bealegend_app:changeme_app@localhost:5432/bealegend_test
+          JWT_SECRET: ci-secret
