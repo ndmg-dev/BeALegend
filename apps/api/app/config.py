@@ -16,9 +16,20 @@ class Settings(BaseSettings):
     access_token_ttl_minutes: int = 15
     refresh_token_ttl_days: int = 30
 
+    # Configuráveis para que a suíte E2E possa afrouxá-los sem que alguém
+    # acabe apagando o limite do código por atrapalhar teste.
+    rate_limit_register: str = "5/hour"
+    rate_limit_login: str = "10/minute"
+    rate_limit_refresh: str = "60/minute"
+
     cors_origins: str = "http://localhost:5173"
     cookie_secure: bool = False
     cookie_domain: str = ""
+    # Caminho VISTO PELO NAVEGADOR, não a rota interna da API. O Caddy (e o
+    # proxy do Vite) publicam a API sob /api e removem o prefixo antes de
+    # chegar aqui — um cookie com path "/auth" simplesmente nunca seria
+    # enviado de volta, e a sessão morreria a cada reload.
+    refresh_cookie_path: str = "/api/auth"
 
     vapid_public_key: str = ""
     vapid_private_key: str = ""

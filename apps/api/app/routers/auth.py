@@ -30,7 +30,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()
 
 REFRESH_COOKIE = "bl_refresh"
-REFRESH_PATH = "/auth"
+REFRESH_PATH = settings.refresh_cookie_path
 
 INVALID_CREDENTIALS = ProblemException(
     401,
@@ -86,7 +86,7 @@ async def _issue_refresh(session: DbSession, user_id, family_id=None) -> str:
 
 
 @router.post("/register", response_model=AccessToken, status_code=201)
-@limiter.limit("5/hour")
+@limiter.limit(settings.rate_limit_register)
 async def register(
     request: Request, response: Response, body: RegisterRequest, session: DbSession
 ) -> AccessToken:
@@ -116,7 +116,7 @@ async def register(
 
 
 @router.post("/login", response_model=AccessToken)
-@limiter.limit("10/minute")
+@limiter.limit(settings.rate_limit_login)
 async def login(
     request: Request, response: Response, body: LoginRequest, session: DbSession
 ) -> AccessToken:
@@ -133,7 +133,7 @@ async def login(
 
 
 @router.post("/refresh", response_model=AccessToken)
-@limiter.limit("60/minute")
+@limiter.limit(settings.rate_limit_refresh)
 async def refresh(request: Request, response: Response, session: DbSession) -> AccessToken:
     raw = request.cookies.get(REFRESH_COOKIE)
     if not raw:

@@ -53,8 +53,13 @@ nunca aceita filtro vindo do cliente. A RLS protege as tabelas de *dados*.
 - Senha com **Argon2** (`passlib`).
 - **Access token** JWT de 15 min, guardado **só em memória** no cliente. Não vai
   para `localStorage`: XSS persistente não teria o que roubar.
-- **Refresh token** em cookie `httpOnly` + `Secure` + `SameSite=Lax`, escopo
-  `/auth`, com **rotação a cada uso**. Só o SHA-256 é guardado no banco.
+- **Refresh token** em cookie `httpOnly` + `Secure` + `SameSite=Lax`, com
+  **rotação a cada uso**. Só o SHA-256 é guardado no banco.
+- O `path` do cookie é `REFRESH_COOKIE_PATH`, e vale o caminho **visto pelo
+  navegador**, não a rota interna. O Caddy publica a API sob `/api` e remove o
+  prefixo antes de chegar ao FastAPI; um cookie com `path=/auth` nunca seria
+  reenviado, e a sessão morreria a cada reload. O padrão é `/api/auth`; os
+  testes ASGI, que falam direto com a API, usam `/auth`.
 - **Detecção de reuso:** cada token pertence a uma *família*. Apresentar um
   token já usado significa que ele vazou — a família inteira é revogada na hora.
 - O cliente centraliza a renovação: por mais requisições que esbarrem num 401
@@ -62,13 +67,23 @@ nunca aceita filtro vindo do cliente. A RLS protege as tabelas de *dados*.
 
 ## Superfície exposta
 
-- Rate limit por IP nos endpoints de auth (`5/hora` no cadastro, `10/min` no
-  login). Com mais de um worker, troque o storage do `slowapi` por Redis.
+- Rate limit por IP nos endpoints de auth: `RATE_LIMIT_REGISTER` (5/hora),
+  `RATE_LIMIT_LOGIN` (10/min), `RATE_LIMIT_REFRESH` (60/min). São configuráveis
+  de propósito — limite que atrapalha a suíte E2E acaba apagado do código; o
+  limite em si é coberto por `tests/test_rate_limit.py`. Com mais de um worker,
+  troque o storage do `slowapi` por Redis.
 - CORS restrito à origem do PWA, com `allow_credentials`.
 - Erros em RFC 7807 (`application/problem+json`) — mensagem de credencial
   inválida não distingue e-mail inexistente de senha errada.
 - Caddy adiciona HSTS, `nosniff`, `X-Frame-Options: DENY` e referrer policy.
 - O container da API roda como usuário não-root.
+
+## Segredos
+
+`./infra/gen-secrets.sh <dominio>` gera `infra/.env` (modo 600) com senhas
+aleatórias e um par de chaves VAPID. Ele se recusa a sobrescrever um `.env`
+existente: trocar `JWT_SECRET` desloga todo mundo e trocar `APP_DB_PASSWORD`
+exige `ALTER ROLE` no Postgres.
 
 ## O que ainda não está fechado
 

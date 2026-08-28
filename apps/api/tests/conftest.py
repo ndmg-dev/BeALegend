@@ -29,6 +29,9 @@ APP_URL = os.environ.get(
 os.environ["DATABASE_OWNER_URL"] = OWNER_URL
 os.environ["DATABASE_URL"] = APP_URL
 os.environ.setdefault("JWT_SECRET", "test-secret")
+# O cliente ASGI fala com a API direto, sem o prefixo /api do proxy — o cookie
+# precisa do caminho interno para o jar do httpx devolvê-lo.
+os.environ["REFRESH_COOKIE_PATH"] = "/auth"
 
 
 @pytest.fixture(scope="session")

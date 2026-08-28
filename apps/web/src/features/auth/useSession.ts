@@ -19,7 +19,13 @@ export const useSession = create<SessionState>((set) => ({
 
   bootstrap: async () => {
     const user = await api.restoreSession();
-    set(user ? { status: 'autenticado', user } : { status: 'anonimo', user: null });
+    set((estado) => {
+      // O usuário pode ter entrado ou criado conta enquanto esta chamada
+      // estava no ar — ela é disparada no boot e leva um round trip. Sem esta
+      // guarda, a resposta atrasada derruba a sessão recém-criada.
+      if (estado.status === 'autenticado') return estado;
+      return user ? { status: 'autenticado', user } : { status: 'anonimo', user: null };
+    });
   },
 
   login: async (email, password) => {
