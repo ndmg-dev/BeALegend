@@ -6,13 +6,14 @@ próprio, deploy em VPS.
 - Arquitetura: [`docs/architecture.md`](docs/architecture.md)
 - Design system: [`docs/design-system.md`](docs/design-system.md)
 - Segurança e isolamento: [`docs/security.md`](docs/security.md)
+- Camada offline: [`docs/offline-sync.md`](docs/offline-sync.md)
 
 ## Estado
 
 | Fase | Entrega | |
 |---|---|---|
 | 0 | Monorepo, Docker Compose, FastAPI + Postgres + Alembic, auth com RLS, PWA com tokens, CI | ✅ |
-| 1 | Camada offline: Dexie, outbox, sync, idempotência, UUIDv7 | — |
+| 1 | Camada offline: Dexie, outbox, sync, idempotência, UUIDv7 | ✅ |
 | 2 | Treino: seed da planilha, executor de sessão, progressão | — |
 | 3 | Finanças | — |
 | 4 | Nutrição | — |
@@ -79,8 +80,10 @@ cd apps/api && pytest    # exige Postgres de verdade: RLS não existe em SQLite
 Variáveis dos testes da API (`TEST_DATABASE_OWNER_URL`, `TEST_DATABASE_URL`)
 apontam para um banco de teste; o padrão é `bealegend_test` em localhost.
 
-Os E2E exercitam auth de verdade — cookie de refresh, rotação, sessão que
-sobrevive ao reload — então precisam do stack completo no ar:
+Os E2E exercitam auth e sync de verdade — cookie de refresh, rotação, escrita
+offline que sobe quando a rede volta — então precisam do stack completo no ar.
+Eles rodam contra o **build de produção** (`vite preview`), porque o service
+worker só precacheia o shell no build:
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d db

@@ -19,10 +19,13 @@ export default defineConfig({
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
     { name: 'desktop-chrome', use: { ...devices['Desktop Chrome'] } },
   ],
+  // Roda contra o build de produção, não contra o dev server: o service
+  // worker só precacheia o shell no build, e sem ele um reload offline não
+  // carrega o app — que é metade do que a fase 1 promete.
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npm run preview -- --port 5173 --strictPort',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env['CI'],
-    timeout: 120_000,
+    timeout: 180_000,
   },
 });

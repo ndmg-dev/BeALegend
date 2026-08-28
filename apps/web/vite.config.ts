@@ -4,6 +4,14 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+const API_PROXY = {
+  '/api': {
+    target: process.env['VITE_API_TARGET'] ?? 'http://localhost:8000',
+    changeOrigin: true,
+    rewrite: (p: string) => p.replace(/^\/api/, ''),
+  },
+};
+
 export default defineConfig({
   plugins: [
     react(),
@@ -45,7 +53,13 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    proxy: { '/api': { target: 'http://localhost:8000', changeOrigin: true, rewrite: (p) => p.replace(/^\/api/, '') } },
+    proxy: API_PROXY,
+  },
+  // O preview serve o build; os E2E rodam contra ele para exercitar o
+  // service worker de verdade.
+  preview: {
+    port: 5173,
+    proxy: API_PROXY,
   },
   test: {
     environment: 'jsdom',
