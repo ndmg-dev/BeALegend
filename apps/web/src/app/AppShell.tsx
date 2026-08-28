@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { OfflineBanner } from '@/ui/OfflineBanner';
+import { SyncIndicator } from '@/ui/SyncIndicator';
 import { cn } from '@/ui/cn';
 
 // Cinco destinos, cada domínio com sua cor — a tela "Hoje" mistura os quatro,
@@ -28,6 +29,7 @@ export function AppShell() {
 
       <div className="flex min-h-dvh flex-1 flex-col">
         <OfflineBanner />
+        <SyncIndicator className="px-sp-4 pt-sp-2" />
         <main className="flex-1 px-sp-4 pb-[calc(var(--tap-min)+24px)] pt-sp-4 md:pb-sp-6">
           <Outlet />
         </main>

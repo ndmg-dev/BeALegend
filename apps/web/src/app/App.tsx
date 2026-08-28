@@ -5,16 +5,26 @@ import { useSession } from '@/features/auth/useSession';
 import { AppShell } from './AppShell';
 import { RequireAuth } from './RequireAuth';
 import { Providers } from './providers';
-import { ComerPage, GranaPage, HojePage, MetasPage, TreinoPage } from './routes/placeholders';
+import { ExercisesPage } from '@/features/training/ExercisesPage';
+import { ComerPage, GranaPage, HojePage, MetasPage } from './routes/placeholders';
 import { useServiceWorker } from './useServiceWorker';
+import { iniciarSync } from '@/data/sync/engine';
 
 export function App() {
   const bootstrap = useSession((s) => s.bootstrap);
+  const autenticado = useSession((s) => s.status === 'autenticado');
   useServiceWorker();
 
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
+
+  // O sync só liga com sessão: sem token, todo push volta 401 e a fila só
+  // acumula tentativa à toa.
+  useEffect(() => {
+    if (!autenticado) return;
+    return iniciarSync();
+  }, [autenticado]);
 
   return (
     <Providers>
@@ -30,7 +40,7 @@ export function App() {
             }
           >
             <Route path="/hoje" element={<HojePage />} />
-            <Route path="/treino" element={<TreinoPage />} />
+            <Route path="/treino" element={<ExercisesPage />} />
             <Route path="/comer" element={<ComerPage />} />
             <Route path="/grana" element={<GranaPage />} />
             <Route path="/metas" element={<MetasPage />} />

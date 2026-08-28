@@ -1,10 +1,30 @@
 /// <reference lib="webworker" />
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching';
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
 
 declare const self: ServiceWorkerGlobalScope;
 
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
+
+// SPA: qualquer rota (/treino, /grana…) é servida pelo shell precacheado.
+// Sem isto, recarregar offline em qualquer rota que não a raiz falha.
+registerRoute(
+  new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+    // /api é do servidor: nunca vem do cache.
+    denylist: [/^\/api\//],
+  }),
+);
+
+// Assume o controle já na primeira visita. Um app offline-first não pode
+// depender de o usuário recarregar duas vezes para ficar protegido.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
 
 self.addEventListener('message', (event) => {
   if ((event.data as { type?: string } | undefined)?.type === 'SKIP_WAITING') {

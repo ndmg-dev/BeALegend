@@ -16,7 +16,6 @@ function Placeholder({ titulo, fase }: { titulo: string; fase: string }) {
 }
 
 export const HojePage = () => <Placeholder titulo="Hoje" fase="fase 5" />;
-export const TreinoPage = () => <Placeholder titulo="Treino" fase="fase 2" />;
 export const ComerPage = () => <Placeholder titulo="Comer" fase="fase 4" />;
 export const GranaPage = () => <Placeholder titulo="Grana" fase="fase 3" />;
 export const MetasPage = () => <Placeholder titulo="Metas" fase="fase 5" />;
