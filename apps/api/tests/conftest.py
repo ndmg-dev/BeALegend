@@ -79,7 +79,9 @@ async def _dispose_engine():
 async def _clean_db():
     engine = create_async_engine(OWNER_URL)
     async with engine.begin() as conn:
-        await conn.execute(text("TRUNCATE exercise, refresh_token, app_user CASCADE"))
+        await conn.execute(
+            text("TRUNCATE idempotency_record, exercise, refresh_token, app_user CASCADE")
+        )
     await engine.dispose()
     yield
 

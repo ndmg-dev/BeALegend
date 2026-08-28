@@ -5,10 +5,10 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base, SyncMixin
 
 
-class Exercise(Base, TimestampMixin):
+class Exercise(Base, SyncMixin):
     """Catalogo de exercicios.
 
     ``is_global`` + ``user_id IS NULL`` = catalogo compartilhado, so admin edita.

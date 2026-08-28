@@ -20,7 +20,9 @@ router = APIRouter(prefix="/training/exercises", tags=["training"])
 
 @router.get("", response_model=list[ExerciseOut])
 async def list_exercises(user: CurrentUser, session: DbSession) -> list[Exercise]:
-    result = await session.scalars(select(Exercise).order_by(Exercise.nome))
+    result = await session.scalars(
+        select(Exercise).where(Exercise.deleted_at.is_(None)).order_by(Exercise.nome)
+    )
     return list(result)
 
 
@@ -46,7 +48,9 @@ async def create_exercise(
 
 @router.get("/{exercise_id}", response_model=ExerciseOut)
 async def get_exercise(exercise_id: UUID, user: CurrentUser, session: DbSession) -> Exercise:
-    exercise = await session.scalar(select(Exercise).where(Exercise.id == exercise_id))
+    exercise = await session.scalar(
+        select(Exercise).where(Exercise.id == exercise_id, Exercise.deleted_at.is_(None))
+    )
     if exercise is None:
         raise ProblemException(
             404,

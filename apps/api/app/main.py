@@ -7,7 +7,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.errors import CONTENT_TYPE, register_error_handlers
 from app.rate_limit import limiter
-from app.routers import auth, exercises, health
+from app.routers import auth, exercises, health, sync
 
 settings = get_settings()
 
@@ -48,3 +48,4 @@ async def _rate_limited(request: Request, exc: RateLimitExceeded) -> JSONRespons
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(exercises.router)
+app.include_router(sync.router)
