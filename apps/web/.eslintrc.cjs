@@ -9,7 +9,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: { project: ['./tsconfig.app.json'], tsconfigRootDir: __dirname },
   plugins: ['react-refresh'],
-  ignorePatterns: ['dist', 'dev-dist', 'node_modules', '*.cjs', '*.config.ts', '*.config.js', 'e2e'],
+  ignorePatterns: ['dist', 'dev-dist', 'coverage', 'playwright-report', 'test-results', 'node_modules', '*.cjs', '*.config.ts', '*.config.js', 'e2e'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'error',
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],

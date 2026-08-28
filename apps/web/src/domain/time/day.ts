@@ -42,11 +42,6 @@ export function addDays(date: LocalDate, days: number): LocalDate {
   return next.toISOString().slice(0, 10);
 }
 
-/** `true` quando as duas datas locais são o mesmo dia civil. */
-export function isSameLocalDay(a: LocalDate, b: LocalDate): boolean {
-  return a === b;
-}
-
 /**
  * Streak em dias consecutivos, contando para trás a partir de `hoje`.
  *
