@@ -70,6 +70,21 @@ services:
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
     command: ["python", "-m", "app.worker"]
+    healthcheck:
+      # O worker nao expoe porta: o sinal de vida e a idade do heartbeat que
+      # ele mesmo escreve a cada 30s (app/worker.py, HEARTBEAT_*). Os numeros
+      # aqui tem que concordar com HEARTBEAT_MAX_AGE_SECONDS naquele arquivo.
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import pathlib,sys,time; p=pathlib.Path('/tmp/worker-heartbeat'); sys.exit(0 if p.exists() and time.time()-p.stat().st_mtime<120 else 1)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks: [internal]
     read_only: true
     tmpfs: [/tmp]
