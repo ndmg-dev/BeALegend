@@ -1,0 +1,128 @@
+name: bealegend
+
+# Deploy no Coolify. Diferenças em relação ao docker-compose.yml (VPS puro):
+#   - o proxy do Coolify termina TLS e roteia o domínio -> caddy:80,
+#     então o Caddy daqui não faz ACME nem abre :443 no host;
+#   - a API confia em qualquer proxy (--forwarded-allow-ips="*") porque são
+#     dois saltos: proxy do Coolify -> caddy -> api.
+# No Coolify: recurso "Docker Compose", aponte o domínio para o serviço
+# `caddy` na porta 80. As variáveis abaixo entram na aba de Environment.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bealegend}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-bealegend}
+    command: >
+      postgres -c bealegend.app_password=${APP_DB_PASSWORD:?set APP_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bealegend} -d ${POSTGRES_DB:-bealegend}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bealegend_app:${APP_DB_PASSWORD}@db:5432/${POSTGRES_DB:-bealegend}
+      DATABASE_OWNER_URL: postgresql+asyncpg://${POSTGRES_USER:-bealegend}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bealegend}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      APP_ENV: production
+      ALLOWED_HOSTS: ${DOMAIN:?set DOMAIN},api,localhost
+      CORS_ORIGINS: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN}
+      COOKIE_SECURE: "true"
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+      # Insights de nutrição por IA (opcional). Sem a flag, os endpoints
+      # respondem 204; com a flag e sem chave, o boot falha de propósito.
+      NUTRITION_INSIGHTS_ENABLED: ${NUTRITION_INSIGHTS_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql+asyncpg://bealegend_app:${APP_DB_PASSWORD}@db:5432/${POSTGRES_DB:-bealegend}
+      DATABASE_OWNER_URL: postgresql+asyncpg://${POSTGRES_USER:-bealegend}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-bealegend}
+      JWT_SECRET: ${JWT_SECRET}
+      APP_ENV: production
+      ALLOWED_HOSTS: ${DOMAIN},api,localhost
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+      NUTRITION_INSIGHTS_ENABLED: ${NUTRITION_INSIGHTS_ENABLED:-false}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+    command: ["python", "-m", "app.worker"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import pathlib,sys,time; p=pathlib.Path('/tmp/worker-heartbeat'); sys.exit(0 if p.exists() and time.time()-p.stat().st_mtime<120 else 1)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Mesma origem do front: o Caddy encaminha /api -> api:8000.
+        VITE_API_URL: /api
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on: [api, web]
+    expose:
+      - "80"
+    volumes:
+      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

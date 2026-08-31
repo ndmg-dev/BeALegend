@@ -1,0 +1,29 @@
+# O build context é a raiz do repo (os Dockerfiles usam context: ..).
+# Sem isto, o .venv da API e os node_modules vão inteiros para o builder.
+.git
+.github
+**/node_modules
+**/.venv
+.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.ruff_cache
+.coverage
+coverage
+**/coverage
+dist
+**/dist
+dev-dist
+**/dev-dist
+*.tsbuildinfo
+**/*.tsbuildinfo
+playwright-report
+test-results
+apps/web/e2e
+docs
+infra/backups
+infra/.env
+**/.env
+**/.env.local
+.DS_Store
