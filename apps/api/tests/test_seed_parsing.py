@@ -1,6 +1,9 @@
 """Testes puros do parser da planilha — sem banco, sem I/O."""
 
 from app.seed.parsing import (
+    PROTOCOLO_POR_DIA,
+    ProtocoloCardio,
+    mapa_protocolo_por_dia,
     parse_descanso_segundos,
     parse_faixa,
     slug_dia_semana,
@@ -93,6 +96,12 @@ class TestTipoDoDia:
         assert tipo_do_dia("Cardio leve") == "cardio"
         assert tipo_do_dia("Cardio + antebraço") == "cardio"
 
+    def test_cardio_reconhece_corrida_bike_pilates(self):
+        assert tipo_do_dia("Pilates") == "cardio"
+        assert tipo_do_dia("Pilates + corrida leve") == "cardio"
+        assert tipo_do_dia("Corrida contínua") == "cardio"
+        assert tipo_do_dia("Bike Z2") == "cardio"
+
     def test_hiit(self):
         assert tipo_do_dia("HIIT") == "hiit"
 
@@ -104,6 +113,36 @@ class TestTipoDoDia:
 
         with pytest.raises(ValueError, match="desconhecido"):
             tipo_do_dia("Ioga")
+
+
+def _protocolo(nome: str) -> ProtocoloCardio:
+    return ProtocoloCardio(
+        nome=nome,
+        aquecimento=None,
+        parte_principal=None,
+        recuperacao=None,
+        desaquecimento=None,
+        rpe_alvo=None,
+        observacao=None,
+    )
+
+
+class TestMapaProtocoloPorDia:
+    def test_deriva_do_dia_no_nome_da_sessao(self):
+        protocolos = [
+            _protocolo("Corrida leve + Pilates (terça)"),
+            _protocolo("HIIT (quinta)"),
+            _protocolo("Corrida contínua (sábado)"),
+        ]
+        assert mapa_protocolo_por_dia(protocolos) == {
+            "terca": "Corrida leve + Pilates (terça)",
+            "quinta": "HIIT (quinta)",
+            "sabado": "Corrida contínua (sábado)",
+        }
+
+    def test_cai_no_mapa_fixo_quando_o_nome_nao_traz_dia(self):
+        protocolos = [_protocolo("Cardio leve"), _protocolo("HIIT iniciante/intermediário")]
+        assert mapa_protocolo_por_dia(protocolos) == PROTOCOLO_POR_DIA
 
 
 class TestUnificarExercicios:

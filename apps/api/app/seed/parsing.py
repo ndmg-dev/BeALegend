@@ -89,16 +89,31 @@ def slug_dia_semana(nome_pt: str) -> str:
     return DIAS_PT_PARA_SLUG[chave]
 
 
+#: Palavras que marcam um dia como aeróbico/mobilidade — não força pura.
+#: HIIT tem tipo próprio; o resto (corrida, bike, pilates, caminhada e
+#: combinações) cai em "cardio". Continua falhando alto no que não reconhece.
+_PALAVRAS_CARDIO = (
+    "cardio",
+    "corrida",
+    "bike",
+    "pilates",
+    "caminhada",
+    "aerób",
+    "mobilidade",
+    "alongamento",
+)
+
+
 def tipo_do_dia(sessao: str) -> str:
-    """'Força A' -> forca; 'Cardio leve' / 'Cardio + antebraço' -> cardio; etc."""
+    """'Força A' -> forca; 'HIIT' -> hiit; 'Pilates + corrida leve' -> cardio."""
     nome = sessao.strip().lower()
-    if nome.startswith("força"):
+    if nome.startswith("força") or nome.startswith("forca"):
         return "forca"
     if nome == "hiit":
         return "hiit"
     if nome == "descanso":
         return "descanso"
-    if nome.startswith("cardio"):
+    if any(palavra in nome for palavra in _PALAVRAS_CARDIO):
         return "cardio"
     raise ValueError(f"Tipo de sessão desconhecido na planilha: {sessao!r}")
 
@@ -181,14 +196,30 @@ def parse_protocolos_cardio(linhas: list[dict]) -> list[ProtocoloCardio]:
     ]
 
 
-#: Mapa fixo desta planilha: qual protocolo de cardio cai em qual dia.
-#: "não construa importador genérico" — isto é conhecimento específico do
-#: plano, não uma regra geral.
+#: Mapa fixo da planilha original: qual protocolo de cardio cai em qual dia.
+#: Usado só quando a planilha não diz o dia no nome da sessão (ver
+#: ``mapa_protocolo_por_dia``).
 PROTOCOLO_POR_DIA = {
     "terca": "Cardio leve",
     "quinta": "HIIT iniciante/intermediário",
     "sabado": "Cardio contínuo longo",
 }
+
+
+def mapa_protocolo_por_dia(protocolos: list[ProtocoloCardio]) -> dict[str, str]:
+    """{dia_semana: nome_do_protocolo}.
+
+    Prefere o dia escrito no próprio nome da sessão — "HIIT (quinta)",
+    "Corrida contínua (sábado)". Se nenhum protocolo trouxer um dia no nome,
+    cai no mapa fixo da planilha original.
+    """
+    derivado: dict[str, str] = {}
+    for p in protocolos:
+        nome = p.nome.lower()
+        for pt, slug in DIAS_PT_PARA_SLUG.items():
+            if pt in nome:
+                derivado[slug] = p.nome
+    return derivado or dict(PROTOCOLO_POR_DIA)
 
 #: O sábado também tem um bloco de força (antebraço/braquial) após o cardio,
 #: registrado na planilha sob o "treino" chamado "Sábado".

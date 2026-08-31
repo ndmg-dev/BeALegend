@@ -11,7 +11,10 @@ catálogo global e pula a criação do plano se um plano ativo com o mesmo nome
 já existir para o usuário. Com ``--force``, o plano antigo (e tudo embaixo
 dele: dias, itens, sessões, séries) é apagado e recriado.
 
-Parser específico desta planilha — não é um importador genérico.
+Parser preso ao formato desta família de planilhas (4 abas: Semana, Treinos
+de força, Exercícios detalhados, Cardio). O vocabulário de sessão e o mapa
+dia→protocolo são inferidos; ``--xlsx`` aponta para outra planilha do mesmo
+formato (ex.: o plano da esposa).
 """
 
 from __future__ import annotations
@@ -31,9 +34,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.ids import uuid7  # noqa: E402
 from app.models import CardioProtocol, Exercise, PlanDay, PlanItem, TrainingPlan, User  # noqa: E402
 from app.seed.parsing import (  # noqa: E402
-    PROTOCOLO_POR_DIA,
     TREINO_FORCA_DO_SABADO,
     ExercicioPlanilha,
+    mapa_protocolo_por_dia,
     parse_protocolos_cardio,
     slug_dia_semana,
     tipo_do_dia,
@@ -172,6 +175,7 @@ async def _criar_plano(
     exercicios_por_nome: dict[str, UUID],
     exercicios_parseados: list[ExercicioPlanilha],
     cardio_por_nome: dict[str, UUID],
+    protocolo_por_dia: dict[str, str],
     force: bool,
 ) -> None:
     existente = await session.scalar(
@@ -217,7 +221,7 @@ async def _criar_plano(
 
         ordem = 1
 
-        protocolo_nome = PROTOCOLO_POR_DIA.get(dia_semana)
+        protocolo_nome = protocolo_por_dia.get(dia_semana)
         if protocolo_nome and tipo in ("cardio", "hiit"):
             protocolo_id = cardio_por_nome.get(protocolo_nome)
             if protocolo_id is None:
@@ -304,6 +308,7 @@ async def main() -> None:
             exercicios_por_nome,
             dados["exercicios"],
             cardio_por_nome,
+            mapa_protocolo_por_dia(dados["cardio"]),
             args.force,
         )
         await session.commit()
