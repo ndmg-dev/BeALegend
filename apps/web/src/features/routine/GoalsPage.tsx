@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Link } from 'react-router-dom';
+import { CATALOG } from '@/domain/achievements/catalog';
+import { db } from '@/data/db/schema';
 import {
   activeGoals,
   checkins,
@@ -27,6 +30,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { DayStrip } from '@/ui/DayStrip';
 import { EmptyState } from '@/ui/EmptyState';
+import { Icon } from '@/ui/Icon';
 import { ProgressRing } from '@/ui/ProgressRing';
 import { StreakBadge } from '@/ui/StreakBadge';
 import { TextField } from '@/ui/TextField';
@@ -46,6 +50,7 @@ export function GoalsPage() {
     habits: await habits(), checkins: await checkins(), goals: await activeGoals(),
     snapshot: await metricSnapshot(today),
     weekly: await weeklySummary(today),
+    conquistas: await db.achievement_unlock.filter((x) => x.deleted_at === null).count(),
     // "Depois do primeiro registro concluído" vale para qualquer domínio —
     // treino, refeição, gasto ou hábito — não só check-in de hábito.
     engaged: await hasCompletedAnyRecord(),
@@ -105,6 +110,19 @@ export function GoalsPage() {
           <StatCard label="Hábitos" value={`${data.weekly.completedHabits}/${data.weekly.expectedHabits}`} detail="check-ins" />
         </div>
       </div>
+
+      <Link
+        to="/conquistas"
+        className="flex min-h-tap items-center justify-between gap-sp-3 rounded-lg border border-border bg-surface p-sp-4 shadow-sm"
+      >
+        <div>
+          <h2 className="text-heading">Conquistas</h2>
+          <p className="text-label text-text-muted tabular-nums">
+            {data.conquistas} de {CATALOG.length} desbloqueadas
+          </p>
+        </div>
+        <span aria-hidden="true" className="text-text-muted"><Icon name="chevron-right" size={24} /></span>
+      </Link>
 
       <Card className="border-l-[3px] border-l-rotina-400">
         <h2 className="mb-sp-3 text-heading">Hábitos de hoje</h2>

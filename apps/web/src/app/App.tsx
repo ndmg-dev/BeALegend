@@ -11,6 +11,7 @@ import { PlanoSemanaPage } from '@/features/training/PlanoSemanaPage';
 import { FinancePage } from '@/features/finance/FinancePage';
 import { NutritionPage } from '@/features/nutrition/NutritionPage';
 import { GoalsPage } from '@/features/routine/GoalsPage';
+import { AchievementsPage } from '@/features/achievements/AchievementsPage';
 import { TodayPage } from '@/features/dashboard/TodayPage';
 import { useServiceWorker } from './useServiceWorker';
 import { iniciarSync } from '@/data/sync/engine';
@@ -51,6 +52,7 @@ export function App() {
             <Route path="/comer" element={<NutritionPage />} />
             <Route path="/grana" element={<FinancePage />} />
             <Route path="/metas" element={<GoalsPage />} />
+            <Route path="/conquistas" element={<AchievementsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/hoje" replace />} />
         </Routes>

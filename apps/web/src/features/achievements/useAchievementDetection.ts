@@ -15,6 +15,7 @@ const DEBOUNCE_MS = 800;
 export function useAchievementDetection(): void {
   const user = useSession((s) => s.user);
   const enfileirar = useCelebrationQueue((s) => s.enfileirar);
+  const registrarBackfill = useCelebrationQueue((s) => s.registrarBackfill);
 
   useEffect(() => {
     if (!user) return;
@@ -28,6 +29,7 @@ export function useAchievementDetection(): void {
         void detectarConquistas(userId, timezone)
           .then((r) => {
             if (r.novos.length) enfileirar(r.novos);
+            if (r.backfill.length) registrarBackfill(r.backfill.length);
           })
           .catch(() => undefined);
       }, DEBOUNCE_MS);
@@ -44,5 +46,5 @@ export function useAchievementDetection(): void {
       parar();
       window.clearTimeout(timer);
     };
-  }, [user, enfileirar]);
+  }, [user, enfileirar, registrarBackfill]);
 }
