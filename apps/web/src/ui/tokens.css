@@ -81,6 +81,12 @@
   --budget-ok: #7dae88;
   --budget-over: #e2807a;
 
+  /* Conquistas — quatro tiers, legíveis sobre surface escura */
+  --tier-bronze: #b98a56;
+  --tier-prata: #a9b1bd;
+  --tier-ouro: #e0b341;
+  --tier-platina: #79d0cb;
+
   --accent: var(--tr-400);
   --accent-contrast: #ffffff;
 
@@ -112,6 +118,11 @@
 
   --budget-ok: #3a6544;
   --budget-over: #a33b34;
+
+  --tier-bronze: #8a6335;
+  --tier-prata: #6b7383;
+  --tier-ouro: #a97e1a;
+  --tier-platina: #2d817b;
 
   --accent: var(--tr-500);
   --accent-contrast: #ffffff;

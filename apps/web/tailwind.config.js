@@ -27,6 +27,12 @@ export default {
         info: { DEFAULT: 'var(--info)', bg: 'var(--info-bg)' },
         budget: { ok: 'var(--budget-ok)', over: 'var(--budget-over)' },
         accent: { DEFAULT: 'var(--accent)', contrast: 'var(--accent-contrast)' },
+        tier: {
+          bronze: 'var(--tier-bronze)',
+          prata: 'var(--tier-prata)',
+          ouro: 'var(--tier-ouro)',
+          platina: 'var(--tier-platina)',
+        },
       },
       fontFamily: { sans: 'var(--font-sans)'.split(',') },
       fontSize: {

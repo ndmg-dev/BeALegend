@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { CelebrationToast } from '@/features/achievements/CelebrationToast';
+import { useAchievementDetection } from '@/features/achievements/useAchievementDetection';
 import { Icon, type IconName } from '@/ui/Icon';
 import { OfflineBanner } from '@/ui/OfflineBanner';
 import { SyncIndicator } from '@/ui/SyncIndicator';
@@ -15,6 +17,8 @@ const DESTINOS: { to: string; label: string; icone: IconName; cor: string }[] = 
 ];
 
 export function AppShell() {
+  useAchievementDetection();
+
   return (
     <div className="min-h-dvh bg-bg text-text md:flex">
       {/* desktop: sidebar */}
@@ -47,6 +51,8 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        <CelebrationToast />
       </div>
     </div>
   );
