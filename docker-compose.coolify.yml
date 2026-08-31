@@ -1,12 +1,17 @@
-name: bealegend
-
-# Deploy no Coolify. Diferenças em relação ao docker-compose.yml (VPS puro):
-#   - o proxy do Coolify termina TLS e roteia o domínio -> caddy:80,
-#     então o Caddy daqui não faz ACME nem abre :443 no host;
-#   - a API confia em qualquer proxy (--forwarded-allow-ips="*") porque são
-#     dois saltos: proxy do Coolify -> caddy -> api.
-# No Coolify: recurso "Docker Compose", aponte o domínio para o serviço
-# `caddy` na porta 80. As variáveis abaixo entram na aba de Environment.
+# Deploy no Coolify. Fica na raiz do repo de propósito: o Coolify roda
+# `docker compose --project-directory <raiz>`, e caminhos relativos de
+# `build.context` são resolvidos a partir dela — um `context: ..` escaparia
+# do repo. Aqui tudo é relativo à raiz.
+#
+# Diferenças em relação ao infra/docker-compose.yml (VPS puro):
+#   - o proxy do Coolify termina TLS e roteia o domínio -> caddy:80, então o
+#     Caddy daqui não faz ACME nem abre :443 no host;
+#   - a API confia em qualquer proxy (--forwarded-allow-ips='*'): são dois
+#     saltos (proxy do Coolify -> caddy -> api).
+#
+# No Coolify: recurso "Docker Compose", Base Directory `/`, Compose Location
+# `/docker-compose.coolify.yml`. Depois, no serviço `caddy` (porta 80),
+# defina o domínio. As variáveis abaixo entram na aba Environment.
 
 services:
   db:
@@ -20,7 +25,7 @@ services:
       postgres -c bealegend.app_password=${APP_DB_PASSWORD:?set APP_DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./db-init:/docker-entrypoint-initdb.d:ro
+      - ./infra/db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bealegend} -d ${POSTGRES_DB:-bealegend}"]
       interval: 10s
@@ -29,7 +34,7 @@ services:
 
   api:
     build:
-      context: ..
+      context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     depends_on:
@@ -67,7 +72,7 @@ services:
 
   worker:
     build:
-      context: ..
+      context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     depends_on:
@@ -104,7 +109,7 @@ services:
 
   web:
     build:
-      context: ..
+      context: .
       dockerfile: apps/web/Dockerfile
       args:
         # Mesma origem do front: o Caddy encaminha /api -> api:8000.
@@ -118,7 +123,7 @@ services:
     expose:
       - "80"
     volumes:
-      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - ./infra/Caddyfile.coolify:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 
