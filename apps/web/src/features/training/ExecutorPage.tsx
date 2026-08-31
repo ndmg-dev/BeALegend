@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useNavigate, useParams } from 'react-router-dom';
+import { db } from '@/data/db/schema';
 import { useSession } from '@/features/auth/useSession';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -25,6 +27,10 @@ export function ExecutorPage() {
   const [descansando, setDescansando] = useState(false);
 
   const item = executor.itemAtual?.item;
+  const exercicio = useLiveQuery(
+    async () => (item?.exercise_id ? await db.exercise.get(item.exercise_id) : undefined),
+    [item?.exercise_id],
+  );
 
   // Sincroniza os steppers com o pré-preenchimento assim que o item muda.
   useEffect(() => {
@@ -89,7 +95,7 @@ export function ExecutorPage() {
       </header>
 
       <Card>
-        <h1 className="mb-sp-2 text-title">Exercício</h1>
+        <h1 className="mb-sp-2 text-title">{exercicio?.nome ?? 'Exercício'}</h1>
         <p className="text-body text-text-secondary">
           {item.reps_min}–{item.reps_max} {item.unidade === 'segundos' ? 's' : 'reps'}
           {item.unilateral ? ' / lado' : ''}
