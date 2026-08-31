@@ -30,8 +30,23 @@
 > "Dados que saem para terceiros". O `builder` já nunca incluiu `meal_log.notas`
 > no payload — confirmado.
 >
-> Pendente: **fase 4 (frontend)** — cliente de API, tabela Dexie, card na
-> tela Nutrição, toggle de opt-in em NotificationSettings.
+> **Fase 4 implementada** (31/08/2026): `data/api/nutritionInsights.ts`
+> (`fetchTodayInsight`/`fetchWeeklyInsight`, 204 → `null`), cache em
+> `data/db/insightsRepo.ts` (tabela `meta`, fora do sync), card `InsightCard`
+> na tela Nutrição (busca ao montar se online, `useLiveQuery` lê o cache pra
+> mostrar offline com carimbo de data), toggle "Insights de IA na alimentação"
+> em `NotificationSettings`.
+>
+> **Todas as 5 fases entregues.** Para ativar em dev:
+> `NUTRITION_INSIGHTS_ENABLED=true` no `apps/api/.env` + opt-in do usuário nas
+> configurações + ao menos uma refeição registrada. Sem `OPENAI_API_KEY` usa
+> o `FakeProvider` (texto canned).
+>
+> Gaps conhecidos (não bloqueantes): sem testes de frontend para o cliente de
+> API / repo / card — consistente com o resto de `data/` e `features/`, onde
+> só `domain/` é testado (falta infra de IndexedDB/fetch mock no vitest). O
+> toggle de opt-in aparece junto do card de Lembretes, então depende do card
+> estar visível (elegível após o primeiro registro).
 
 ## Objetivo
 

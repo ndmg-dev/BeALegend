@@ -8,6 +8,7 @@ const preferencesSchema = z.object({
   resumo_semanal_enabled: z.boolean(),
   resumo_dia_semana: z.number().int().min(0).max(6),
   resumo_horario: z.string(),
+  insights_ia_enabled: z.boolean(),
 });
 export type NotificationPreferences = z.infer<typeof preferencesSchema>;
 

@@ -9,6 +9,12 @@ import {
   mealSlots,
   waterOnDay,
 } from '@/data/db/nutritionRepo';
+import {
+  fetchTodayInsight,
+  fetchWeeklyInsight,
+  type NutritionInsight,
+} from '@/data/api/nutritionInsights';
+import { cachedInsight, saveInsight } from '@/data/db/insightsRepo';
 import { sincronizar } from '@/data/sync/engine';
 import { summarizeAdherence, totalWater, type Adherence } from '@/domain/nutrition/adherence';
 import { toLocalDate } from '@/domain/time/day';
@@ -30,6 +36,10 @@ export function NutritionPage() {
     meals: await mealsOnDay(day),
     water: await waterOnDay(day),
   }), [day]);
+  const insight = useLiveQuery(
+    async () => (await cachedInsight('diario')) ?? (await cachedInsight('semanal')),
+    [],
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -39,6 +49,21 @@ export function NutritionPage() {
     });
     return () => { cancelled = true; };
   }, [user]);
+
+  useEffect(() => {
+    if (!user || !navigator.onLine) return;
+    let cancelled = false;
+    void (async () => {
+      const [diario, semanal] = await Promise.allSettled([
+        fetchTodayInsight(),
+        fetchWeeklyInsight(),
+      ]);
+      if (cancelled) return;
+      if (diario.status === 'fulfilled') await saveInsight('diario', diario.value);
+      if (semanal.status === 'fulfilled') await saveInsight('semanal', semanal.value);
+    })();
+    return () => { cancelled = true; };
+  }, [user, day]);
 
   const adherence = useMemo(
     () => summarizeAdherence((data?.meals ?? []).map((meal) => meal.aderencia)),
@@ -56,6 +81,8 @@ export function NutritionPage() {
           {adherence.total ? `${adherence.percentual}% de aderência hoje` : 'Registre sem contar calorias'}
         </p>
       </header>
+
+      {insight ? <InsightCard insight={insight} /> : null}
 
       <Card className="border-l-[3px] border-l-nutricao-400">
         <div className="mb-sp-4 flex items-baseline justify-between">
@@ -124,6 +151,23 @@ export function NutritionPage() {
         </Card>
       ) : null}
     </section>
+  );
+}
+
+function InsightCard({ insight }: { insight: NutritionInsight }) {
+  const dias = Math.floor((Date.now() - Date.parse(insight.gerado_em)) / 86_400_000);
+  const quando = dias <= 0 ? 'hoje' : dias === 1 ? 'ontem' : `há ${dias} dias`;
+  return (
+    <Card className="border-l-[3px] border-l-nutricao-300 bg-nutricao-950/30">
+      <div className="mb-sp-2 flex items-baseline justify-between">
+        <h2 className="text-heading">
+          <span aria-hidden="true">✨ </span>
+          {insight.tipo === 'semanal' ? 'Leitura da semana' : 'Observação do dia'}
+        </h2>
+        <span className="text-caption text-text-muted">{quando}</span>
+      </div>
+      <p className="text-body text-text-secondary">{insight.texto}</p>
+    </Card>
   );
 }
 

@@ -103,6 +103,19 @@ export function NotificationSettings({ eligible }: { eligible: boolean }) {
           {config.preferences.resumo_semanal_enabled ? <TimePreference label="Horário do resumo" value={config.preferences.resumo_horario} onChange={(value) => void patchPreferences({ resumo_horario: value })} /> : null}
         </div>
       ) : null}
+      {config ? (
+        <div className="mt-sp-4 flex flex-col gap-sp-2 border-t border-border-subtle pt-sp-4">
+          <PreferenceToggle
+            label="Insights de IA na alimentação"
+            checked={config.preferences.insights_ia_enabled}
+            onChange={(value) => void patchPreferences({ insights_ia_enabled: value })}
+          />
+          <p className="text-caption text-text-muted">
+            Envia um resumo agregado dos seus registros (sem fotos e sem as notas)
+            para gerar observações. Desligado por padrão.
+          </p>
+        </div>
+      ) : null}
     </Card>
   );
 }
