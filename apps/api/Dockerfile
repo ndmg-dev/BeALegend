@@ -17,6 +17,7 @@ RUN pip install --upgrade pip && pip install .
 COPY apps/api/alembic ./alembic
 COPY apps/api/alembic.ini ./alembic.ini
 COPY apps/api/scripts ./scripts
+COPY apps/api/data ./data
 
 RUN useradd --uid 10001 --no-create-home appuser && chown -R appuser /srv
 USER appuser
