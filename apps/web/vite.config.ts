@@ -16,9 +16,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      // autoUpdate: o SW novo assume e recarrega sozinho (o handler de
+      // SKIP_WAITING em sw.ts faz a troca). Sem isso o usuário ficava preso
+      // numa versão antiga até limpar o SW na mão. Um reload no meio de uma
+      // série perde só os valores não confirmados do stepper — cada série
+      // concluída já está no Dexie.
+      registerType: 'autoUpdate',
       // O service worker é escrito à mão porque ele precisa receber Web Push
-      // (fase 6) além do precache do Workbox.
+      // além do precache do Workbox.
       strategies: 'injectManifest',
       srcDir: 'src/app',
       filename: 'sw.ts',
