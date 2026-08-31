@@ -1,4 +1,4 @@
-import { addDays, daysBetween, type LocalDate } from '@/domain/time/day';
+import { addDays, currentStreak, daysBetween, type LocalDate } from '@/domain/time/day';
 
 const RRULE_DAY: Record<number, string> = {
   0: 'SU', 1: 'MO', 2: 'TU', 3: 'WE', 4: 'TH', 5: 'FR', 6: 'SA',
@@ -19,16 +19,16 @@ export function weekDates(today: LocalDate): LocalDate[] {
   return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
 }
 
+/**
+ * Streak de um hábito específico.
+ *
+ * A regra de "dias consecutivos terminando hoje ou ontem" já existe em
+ * `domain/time/day.ts` — é a mesma conta usada em qualquer streak do app
+ * (treino, hábito, o que vier depois). Este wrapper só existe para o nome
+ * ficar claro no domínio de rotina; a lógica mora um lugar só.
+ */
 export function streakForHabit(completedDates: readonly LocalDate[], today: LocalDate): number {
-  const completed = new Set(completedDates);
-  let cursor = today;
-  if (!completed.has(cursor)) cursor = addDays(cursor, -1);
-  let streak = 0;
-  while (completed.has(cursor)) {
-    streak += 1;
-    cursor = addDays(cursor, -1);
-  }
-  return streak;
+  return currentStreak(completedDates, today);
 }
 
 export function completedThisWeek(dates: readonly LocalDate[], today: LocalDate): number {
