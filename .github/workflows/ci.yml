@@ -95,7 +95,8 @@ jobs:
         env:
           PGPASSWORD: changeme
         run: |
-          psql -h localhost -U bealegend -d bealegend -c             "CREATE ROLE bealegend_app LOGIN PASSWORD 'changeme_app';"
+          psql -h localhost -U bealegend -d bealegend -c \
+            "CREATE ROLE bealegend_app LOGIN PASSWORD 'changeme_app';"
 
       - name: migrations
         working-directory: apps/api
@@ -126,6 +127,12 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: apps/web
       - run: npm run test:e2e
+        env:
+          # O seed da planilha roda como subprocesso Python a partir do teste
+          # de treino. Explícito em vez de depender do fallback do spec
+          # coincidir com a config acima — mesmo que hoje coincida.
+          E2E_PYTHON: python
+          E2E_DATABASE_OWNER_URL: postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend
 
       - uses: actions/upload-artifact@v4
         if: failure()
