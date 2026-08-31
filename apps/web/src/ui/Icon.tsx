@@ -52,7 +52,8 @@ export type IconName =
   | 'mail'
   | 'lock'
   | 'eye'
-  | 'eye-off';
+  | 'eye-off'
+  | 'trophy';
 
 // 16/24/28/40 são os quatro tamanhos-âncora da especificação; 20 e 22 vêm
 // do próprio mockup da tela de Entrar (ícone do campo e domínios no rodapé).

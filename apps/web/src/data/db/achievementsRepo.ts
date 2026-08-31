@@ -22,11 +22,22 @@ import { mealSlots } from './nutritionRepo';
 
 const AGUA_META_ML = 2000;
 
+/** dia_semana do plan_day → índice getUTCDay (0=domingo). */
+const DIA_SEMANA_WEEKDAY: Record<string, number> = {
+  domingo: 0,
+  segunda: 1,
+  terca: 2,
+  quarta: 3,
+  quinta: 4,
+  sexta: 5,
+  sabado: 6,
+};
+
 const vivos = <T extends { deleted_at: string | null }>(xs: readonly T[]): T[] =>
   xs.filter((x) => x.deleted_at === null);
 
 async function montarSnapshot(timezone: string): Promise<AchievementSnapshot> {
-  const [sessions, sets, meals, waters, txns, budgets, checkins, habits, slots] =
+  const [sessions, sets, meals, waters, txns, budgets, checkins, habits, slots, planDays] =
     await Promise.all([
       db.session.toArray(),
       db.set_log.toArray(),
@@ -37,6 +48,7 @@ async function montarSnapshot(timezone: string): Promise<AchievementSnapshot> {
       db.habit_checkin.toArray(),
       db.habit.toArray(),
       mealSlots(),
+      db.plan_day.toArray(),
     ]);
 
   return buildSnapshot({
@@ -58,10 +70,18 @@ async function montarSnapshot(timezone: string): Promise<AchievementSnapshot> {
     slotsAtivos: slots.length,
     aguaLogs: vivos(waters).map((x) => ({ data: x.data, ml: x.ml })),
     aguaMetaMl: AGUA_META_ML,
-    despesasDatas: vivos(txns)
+    despesas: vivos(txns)
       .filter((x) => x.tipo === 'despesa')
-      .map((x) => x.data),
-    orcamentosAtivos: vivos(budgets).length,
+      .map((x) => ({ data: x.data, categoryId: x.category_id, centavos: x.valor_centavos })),
+    orcamentos: vivos(budgets).map((x) => ({
+      categoryId: x.category_id,
+      mesAno: x.mes_ano,
+      limiteCentavos: x.limite_centavos,
+    })),
+    planDiasTreino: vivos(planDays)
+      .filter((d) => d.tipo !== 'descanso')
+      .map((d) => DIA_SEMANA_WEEKDAY[d.dia_semana])
+      .filter((n): n is number => n !== undefined),
     checkinsConcluidos: vivos(checkins)
       .filter((x) => x.concluido)
       .map((x) => ({ habit_id: x.habit_id, data: x.data })),

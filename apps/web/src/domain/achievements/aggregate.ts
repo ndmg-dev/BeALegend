@@ -21,8 +21,10 @@ export interface SnapshotInput {
   slotsAtivos: number;
   aguaLogs: readonly { data: LocalDate; ml: number }[];
   aguaMetaMl: number;
-  despesasDatas: readonly LocalDate[];
-  orcamentosAtivos: number;
+  despesas: readonly { data: LocalDate; categoryId: string | null; centavos: number }[];
+  orcamentos: readonly { categoryId: string; mesAno: string; limiteCentavos: number }[];
+  /** Índices de dia da semana (0=domingo) que são dias de treino no plano ativo. */
+  planDiasTreino: readonly number[];
   checkinsConcluidos: readonly { habit_id: string; data: LocalDate }[];
   habitosAtivos: readonly { id: string; frequencia_rrule: string }[];
 }
@@ -137,14 +139,67 @@ export function fullSlotDays(
   return [...porDia.values()].filter((s) => s.size >= slotsAtivos).length;
 }
 
+/**
+ * Meses fechados dentro do orçamento: todo orçamento daquele mês teve gasto
+ * na categoria ≤ limite. Só conta meses já encerrados (< mês atual).
+ */
+export function monthsUnderBudget(
+  orcamentos: readonly { categoryId: string; mesAno: string; limiteCentavos: number }[],
+  despesas: readonly { data: LocalDate; categoryId: string | null; centavos: number }[],
+  mesAtual: string,
+): number {
+  const gasto = new Map<string, number>();
+  for (const d of despesas) {
+    if (!d.categoryId) continue;
+    const k = `${d.data.slice(0, 7)}|${d.categoryId}`;
+    gasto.set(k, (gasto.get(k) ?? 0) + Math.max(0, d.centavos));
+  }
+
+  let n = 0;
+  for (const [mes, lista] of agrupar(orcamentos, (o) => o.mesAno)) {
+    if (mes >= mesAtual) continue;
+    if (lista.every((o) => (gasto.get(`${mes}|${o.categoryId}`) ?? 0) <= o.limiteCentavos)) n += 1;
+  }
+  return n;
+}
+
+/**
+ * Semanas em que todo dia de treino do plano teve sessão concluída. Só semanas
+ * encerradas. Aproximação: usa o plano atual contra semanas passadas.
+ */
+export function perfectPlanWeeks(
+  sessoesDatas: readonly LocalDate[],
+  planDiasTreino: readonly number[],
+  hoje: LocalDate,
+): number {
+  const necessarios = [...new Set(planDiasTreino)];
+  if (necessarios.length === 0) return 0;
+
+  const porSemana = new Map<LocalDate, Set<number>>();
+  for (const d of sessoesDatas) {
+    const wk = semanaDe(d);
+    const wd = new Date(`${d}T00:00:00Z`).getUTCDay();
+    (porSemana.get(wk) ?? porSemana.set(wk, new Set()).get(wk)!).add(wd);
+  }
+
+  const semanaAtual = semanaDe(hoje);
+  let n = 0;
+  for (const [wk, dias] of porSemana) {
+    if (wk >= semanaAtual) continue;
+    if (necessarios.every((d) => dias.has(d))) n += 1;
+  }
+  return n;
+}
+
 export function buildSnapshot(i: SnapshotInput): AchievementSnapshot {
   const s = emptySnapshot();
   const datasTreino = i.sessoesConcluidas.map((x) => x.data);
+  const despesasDatas = i.despesas.map((d) => d.data);
 
   s.training.sessionsTotal = i.sessoesConcluidas.length;
   s.training.setsTotal = i.sets.length;
   s.training.semanasStreak = weeklyTrainingStreak(datasTreino, i.hoje);
-  s.training.semanasNoPlano = 0; // TODO fase futura: casar plan_day x sessão por semana
+  s.training.semanasNoPlano = perfectPlanWeeks(datasTreino, i.planDiasTreino, i.hoje);
   s.training.aumentouCarga = loadIncreased(i.sets);
   s.training.treinouAntesDas7 = i.sets.some(
     (x) => localHour(new Date(x.concluido_em), i.timezone) < 7,
@@ -158,9 +213,15 @@ export function buildSnapshot(i: SnapshotInput): AchievementSnapshot {
   );
   s.nutrition.diasSlotsCompletos = fullSlotDays(i.refeicoes, i.slotsAtivos);
 
-  s.finance.orcamentosCriados = i.orcamentosAtivos;
-  s.finance.mesesDentroDoOrcamento = 0; // TODO fase futura: gasto por mês x limite por categoria
-  s.finance.streakRegistroGasto = currentStreak([...new Set(i.despesasDatas)], i.hoje);
+  s.finance.orcamentosCriados = new Set(
+    i.orcamentos.map((o) => `${o.mesAno}|${o.categoryId}`),
+  ).size;
+  s.finance.mesesDentroDoOrcamento = monthsUnderBudget(
+    i.orcamentos,
+    i.despesas,
+    i.hoje.slice(0, 7),
+  );
+  s.finance.streakRegistroGasto = currentStreak([...new Set(despesasDatas)], i.hoje);
 
   s.routine.checkinsTotal = i.checkinsConcluidos.length;
   s.routine.melhorStreakHabito = bestHabitStreak(i.checkinsConcluidos);
@@ -168,7 +229,7 @@ export function buildSnapshot(i: SnapshotInput): AchievementSnapshot {
 
   const diasTreino = new Set(datasTreino);
   const diasRefeicao = new Set(i.refeicoes.map((x) => x.data));
-  const diasGasto = new Set(i.despesasDatas);
+  const diasGasto = new Set(despesasDatas);
   const diasHabito = new Set(i.checkinsConcluidos.map((x) => x.data));
   const diasAgua = new Set(i.aguaLogs.map((x) => x.data));
   s.cross.diasAtivo = new Set([

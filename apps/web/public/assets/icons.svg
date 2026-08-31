@@ -160,4 +160,11 @@
     <path d="M6.6 6.6C4 8.3 2 12 2 12s4 7 10 7a9.6 9.6 0 0 0 4.2-1"/>
     <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>
   </symbol>
+  <symbol id="trophy" viewBox="0 0 24 24">
+    <path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"/>
+    <path d="M7 6H4v1.5A3.5 3.5 0 0 0 7.5 11"/>
+    <path d="M17 6h3v1.5A3.5 3.5 0 0 1 16.5 11"/>
+    <path d="M12 13v3.5"/>
+    <path d="M8.5 20h7l-.6-3.5h-5.8z"/>
+  </symbol>
 </svg>

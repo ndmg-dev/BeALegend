@@ -126,35 +126,42 @@ function TrophyCard({
   return (
     <Card
       className={cn(
-        'flex flex-col gap-sp-1 border-l-4',
+        'flex items-start gap-sp-3 border-l-4',
         unlocked ? TIER_BORDER[a.tier] : 'border-l-border opacity-60',
       )}
     >
-      <span className="text-caption uppercase tracking-wide text-text-muted">
-        {unlocked ? 'Desbloqueada' : secretaOculta ? 'Secreta' : `${atual} / ${a.alvo}`}
-      </span>
-      <span className="text-body font-semibold">{secretaOculta ? '???' : a.titulo}</span>
-      <span className="text-label text-text-secondary">
-        {secretaOculta ? 'Continue usando o app para revelar.' : a.descricao}
-      </span>
-
-      {unlocked && status?.desbloqueado_em ? (
-        <span className="mt-sp-1 text-caption text-text-muted">
-          {formatarData(status.desbloqueado_em)}
+      <Icon
+        name="trophy"
+        size={24}
+        className={cn('mt-sp-1 shrink-0', unlocked ? TIER_TEXT[a.tier] : 'text-text-muted')}
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-sp-1">
+        <span className="text-caption uppercase tracking-wide text-text-muted">
+          {unlocked ? 'Desbloqueada' : secretaOculta ? 'Secreta' : `${atual} / ${a.alvo}`}
         </span>
-      ) : !unlocked && !secretaOculta ? (
-        <div
-          className="mt-sp-2 h-1.5 overflow-hidden rounded-full bg-surface-sunken"
-          role="progressbar"
-          aria-valuenow={Math.round(fracao * 100)}
-          aria-valuemax={100}
-        >
+        <span className="text-body font-semibold">{secretaOculta ? '???' : a.titulo}</span>
+        <span className="text-label text-text-secondary">
+          {secretaOculta ? 'Continue usando o app para revelar.' : a.descricao}
+        </span>
+
+        {unlocked && status?.desbloqueado_em ? (
+          <span className="mt-sp-1 text-caption text-text-muted">
+            {formatarData(status.desbloqueado_em)}
+          </span>
+        ) : !unlocked && !secretaOculta ? (
           <div
-            className="h-full rounded-full bg-text-muted"
-            style={{ width: `${Math.min(100, fracao * 100)}%` }}
-          />
-        </div>
-      ) : null}
+            className="mt-sp-2 h-1.5 overflow-hidden rounded-full bg-surface-sunken"
+            role="progressbar"
+            aria-valuenow={Math.round(fracao * 100)}
+            aria-valuemax={100}
+          >
+            <div
+              className="h-full rounded-full bg-text-muted"
+              style={{ width: `${Math.min(100, fracao * 100)}%` }}
+            />
+          </div>
+        ) : null}
+      </div>
     </Card>
   );
 }

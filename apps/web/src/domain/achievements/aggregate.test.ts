@@ -6,7 +6,9 @@ import {
   daysMeetingWaterGoal,
   fullSlotDays,
   loadIncreased,
+  monthsUnderBudget,
   perfectHabitDays,
+  perfectPlanWeeks,
   weeklyTrainingStreak,
   type SnapshotInput,
 } from './aggregate';
@@ -125,6 +127,53 @@ describe('fullSlotDays', () => {
   });
 });
 
+describe('monthsUnderBudget', () => {
+  const orcamentos = [
+    { categoryId: 'mercado', mesAno: '2026-07', limiteCentavos: 100_000 },
+    { categoryId: 'lazer', mesAno: '2026-07', limiteCentavos: 20_000 },
+  ];
+
+  it('conta o mês só quando todas as categorias ficaram no limite', () => {
+    const despesas = [
+      { data: '2026-07-05', categoryId: 'mercado', centavos: 90_000 },
+      { data: '2026-07-10', categoryId: 'lazer', centavos: 15_000 },
+    ];
+    expect(monthsUnderBudget(orcamentos, despesas, '2026-08')).toBe(1);
+  });
+
+  it('estourar uma categoria derruba o mês', () => {
+    const despesas = [{ data: '2026-07-10', categoryId: 'lazer', centavos: 25_000 }];
+    expect(monthsUnderBudget(orcamentos, despesas, '2026-08')).toBe(0);
+  });
+
+  it('ignora o mês corrente e os futuros', () => {
+    expect(monthsUnderBudget(orcamentos, [], '2026-07')).toBe(0);
+  });
+});
+
+describe('perfectPlanWeeks', () => {
+  // 2026-08-31 = segunda (semana atual). Semana de 08-24 é a anterior.
+  const diasTreino = [1, 3, 5]; // seg, qua, sex
+
+  it('conta a semana anterior com todos os dias de treino cobertos', () => {
+    const datas = ['2026-08-24', '2026-08-26', '2026-08-28']; // seg/qua/sex
+    expect(perfectPlanWeeks(datas, diasTreino, '2026-08-31')).toBe(1);
+  });
+
+  it('falta um dia = semana não conta', () => {
+    expect(perfectPlanWeeks(['2026-08-24', '2026-08-26'], diasTreino, '2026-08-31')).toBe(0);
+  });
+
+  it('a semana atual não conta (ainda não encerrou)', () => {
+    const datas = ['2026-08-31']; // seg da semana atual
+    expect(perfectPlanWeeks(datas, [1], '2026-08-31')).toBe(0);
+  });
+
+  it('é 0 se o plano não tem dia de treino', () => {
+    expect(perfectPlanWeeks(['2026-08-24'], [], '2026-08-31')).toBe(0);
+  });
+});
+
 describe('buildSnapshot', () => {
   const base: SnapshotInput = {
     hoje: '2026-08-31',
@@ -135,8 +184,9 @@ describe('buildSnapshot', () => {
     slotsAtivos: 0,
     aguaLogs: [],
     aguaMetaMl: 2000,
-    despesasDatas: [],
-    orcamentosAtivos: 0,
+    despesas: [],
+    orcamentos: [],
+    planDiasTreino: [],
     checkinsConcluidos: [],
     habitosAtivos: [],
   };
@@ -153,7 +203,7 @@ describe('buildSnapshot', () => {
       ...base,
       sessoesConcluidas: [{ data: '2026-08-30' }, { data: '2026-08-31' }],
       refeicoes: [{ data: '2026-08-30', aderencia: 'dentro', slot_id: null }],
-      despesasDatas: ['2026-08-30'],
+      despesas: [{ data: '2026-08-30', categoryId: null, centavos: 100 }],
       checkinsConcluidos: [{ habit_id: 'h', data: '2026-08-30' }],
       aguaLogs: [{ data: '2026-08-29', ml: 100 }],
     });

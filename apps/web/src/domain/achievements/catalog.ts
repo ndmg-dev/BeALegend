@@ -32,9 +32,12 @@ const BASE: readonly Achievement[] = [
   { key: 'treino.cinquenta', titulo: 'Constância', descricao: 'Conclua 50 treinos.', tier: 'prata', metrica: 'training.sessions.total', alvo: 50, icone: 'dumbbell' },
   { key: 'treino.cem', titulo: 'Veterano', descricao: 'Conclua 100 treinos.', tier: 'ouro', metrica: 'training.sessions.total', alvo: 100, icone: 'dumbbell' },
   { key: 'treino.streak4', titulo: 'Mês fechado', descricao: 'Treine ao menos uma vez por 4 semanas seguidas.', tier: 'prata', metrica: 'training.weeks.streak', alvo: 4, icone: 'flame' },
+  { key: 'treino.streak12', titulo: 'Trimestre sem falhar', descricao: 'Treine em 12 semanas seguidas.', tier: 'ouro', metrica: 'training.weeks.streak', alvo: 12, icone: 'flame' },
+  { key: 'treino.plano4', titulo: 'Mês no plano', descricao: 'Cumpra o plano inteiro da semana 4 vezes.', tier: 'bronze', metrica: 'training.weeks.perfect', alvo: 4, icone: 'calendar-check' },
   { key: 'treino.plano12', titulo: 'Fiel ao plano', descricao: 'Cumpra o plano inteiro da semana 12 vezes.', tier: 'ouro', metrica: 'training.weeks.perfect', alvo: 12, icone: 'calendar-check' },
   { key: 'treino.progressao', titulo: 'Mais peso', descricao: 'Aumente a carga de um exercício entre duas sessões.', tier: 'ouro', metrica: 'training.load.increased', alvo: 1, icone: 'trending-up' },
   { key: 'treino.madrugador', titulo: 'Madrugador', descricao: 'Comece um treino antes das 7h.', tier: 'prata', metrica: 'training.earlybird', alvo: 1, icone: 'sunrise', secreta: true },
+  { key: 'treino.series100', titulo: 'Primeiras cem', descricao: 'Registre 100 séries.', tier: 'bronze', metrica: 'training.sets.total', alvo: 100, icone: 'list-checks' },
   { key: 'treino.series500', titulo: 'Mil repetições depois', descricao: 'Registre 500 séries.', tier: 'ouro', metrica: 'training.sets.total', alvo: 500, icone: 'list-checks' },
 
   // ── Nutrição ────────────────────────────────────────────────────────────
@@ -45,24 +48,30 @@ const BASE: readonly Achievement[] = [
   { key: 'comer.agua7', titulo: 'Hidratado', descricao: 'Bata a meta de água 7 dias seguidos.', tier: 'prata', metrica: 'nutrition.water.streak', alvo: 7, icone: 'droplet' },
   { key: 'comer.agua30', titulo: 'Fonte', descricao: 'Bata a meta de água 30 dias seguidos.', tier: 'ouro', metrica: 'nutrition.water.streak', alvo: 30, icone: 'droplet' },
   { key: 'comer.diacompleto', titulo: 'Dia redondo', descricao: 'Registre todas as refeições do plano num dia, 10 vezes.', tier: 'prata', metrica: 'nutrition.slots.fullDays', alvo: 10, icone: 'clipboard-check' },
+  { key: 'comer.diacompleto30', titulo: 'Mês redondo', descricao: 'Registre todas as refeições do plano num dia, 30 vezes.', tier: 'ouro', metrica: 'nutrition.slots.fullDays', alvo: 30, icone: 'clipboard-check' },
 
   // ── Grana ───────────────────────────────────────────────────────────────
   { key: 'grana.primeiroorcamento', titulo: 'Plano de voo', descricao: 'Crie seu primeiro orçamento.', tier: 'bronze', metrica: 'finance.budgets.created', alvo: 1, icone: 'wallet' },
   { key: 'grana.mesnoazul', titulo: 'No azul', descricao: 'Feche um mês inteiro dentro do orçamento.', tier: 'prata', metrica: 'finance.months.underBudget', alvo: 1, icone: 'piggy-bank' },
   { key: 'grana.trimestre', titulo: 'Sob controle', descricao: 'Feche 3 meses dentro do orçamento.', tier: 'ouro', metrica: 'finance.months.underBudget', alvo: 3, icone: 'piggy-bank' },
+  { key: 'grana.semestre', titulo: 'Piloto automático', descricao: 'Feche 6 meses dentro do orçamento.', tier: 'ouro', metrica: 'finance.months.underBudget', alvo: 6, icone: 'piggy-bank' },
+  { key: 'grana.registro7', titulo: 'Semana anotada', descricao: 'Registre um gasto por 7 dias seguidos.', tier: 'bronze', metrica: 'finance.expense.streak', alvo: 7, icone: 'receipt' },
   { key: 'grana.registro30', titulo: 'Olho no bolso', descricao: 'Registre um gasto por 30 dias seguidos.', tier: 'prata', metrica: 'finance.expense.streak', alvo: 30, icone: 'receipt' },
 
   // ── Rotina ──────────────────────────────────────────────────────────────
   { key: 'rotina.habito7', titulo: 'Semente', descricao: 'Mantenha um hábito por 7 dias seguidos.', tier: 'bronze', metrica: 'routine.habit.bestStreak', alvo: 7, icone: 'sprout' },
   { key: 'rotina.habito30', titulo: 'Raiz', descricao: 'Mantenha um hábito por 30 dias seguidos.', tier: 'prata', metrica: 'routine.habit.bestStreak', alvo: 30, icone: 'sprout' },
   { key: 'rotina.habito100', titulo: 'Árvore', descricao: 'Mantenha um hábito por 100 dias seguidos.', tier: 'ouro', metrica: 'routine.habit.bestStreak', alvo: 100, icone: 'trees' },
+  { key: 'rotina.checkins100', titulo: 'Cem vezes', descricao: 'Faça 100 check-ins de hábito.', tier: 'bronze', metrica: 'routine.checkins.total', alvo: 100, icone: 'check-circle' },
   { key: 'rotina.diaperfeito', titulo: 'Dia impecável', descricao: 'Conclua todos os hábitos previstos num dia.', tier: 'prata', metrica: 'routine.days.perfect', alvo: 1, icone: 'check-circle' },
+  { key: 'rotina.diaperfeito30', titulo: 'Mês impecável', descricao: 'Tenha 30 dias com todos os hábitos previstos concluídos.', tier: 'ouro', metrica: 'routine.days.perfect', alvo: 30, icone: 'check-circle' },
   { key: 'rotina.checkins500', titulo: 'Quinhentas vezes', descricao: 'Faça 500 check-ins de hábito.', tier: 'ouro', metrica: 'routine.checkins.total', alvo: 500, icone: 'check-circle' },
 
   // ── Transversais ────────────────────────────────────────────────────────
   { key: 'geral.semana', titulo: 'Uma semana', descricao: 'Use o app em 7 dias distintos.', tier: 'bronze', metrica: 'cross.days.active', alvo: 7, icone: 'star' },
   { key: 'geral.mes', titulo: 'Um mês', descricao: 'Use o app em 30 dias distintos.', tier: 'prata', metrica: 'cross.days.active', alvo: 30, icone: 'star' },
   { key: 'geral.trimestre', titulo: 'Um trimestre', descricao: 'Use o app em 90 dias distintos.', tier: 'ouro', metrica: 'cross.days.active', alvo: 90, icone: 'star' },
+  { key: 'geral.semestre', titulo: 'Meio ano junto', descricao: 'Use o app em 180 dias distintos.', tier: 'ouro', metrica: 'cross.days.active', alvo: 180, icone: 'star' },
   { key: 'geral.quatroareas', titulo: 'Dia cheio', descricao: 'Registre treino, refeição, gasto e hábito no mesmo dia.', tier: 'prata', metrica: 'cross.days.fourAreas', alvo: 1, icone: 'layout-grid' },
 ];
 

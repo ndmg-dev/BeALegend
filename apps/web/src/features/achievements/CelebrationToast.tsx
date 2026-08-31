@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { findAchievement, type Tier } from '@/domain/achievements/catalog';
+import { Icon } from '@/ui/Icon';
 import { cn } from '@/ui/cn';
 import { useCelebrationQueue } from './celebrationQueue';
 
@@ -58,18 +59,21 @@ export function CelebrationToast() {
         onClick={descartar}
         aria-live="polite"
         className={cn(
-          'pointer-events-auto mx-auto flex w-full max-w-md flex-col gap-sp-1 rounded-lg border border-border border-l-4 bg-surface-raised p-sp-4 text-left shadow-lg',
+          'pointer-events-auto mx-auto flex w-full max-w-md items-start gap-sp-3 rounded-lg border border-border border-l-4 bg-surface-raised p-sp-4 text-left shadow-lg',
           TIER_BORDER[conquista.tier],
         )}
       >
-        <span className="text-caption uppercase tracking-wide text-text-muted">
-          Conquista desbloqueada ·{' '}
-          <span className={TIER_TEXT[conquista.tier]}>{TIER_LABEL[conquista.tier]}</span>
-        </span>
-        <span className="text-subhead">{conquista.titulo}</span>
-        <span className="text-label text-text-secondary">{conquista.descricao}</span>
-        <span className="mt-sp-1 text-caption text-text-muted">
-          {restantes > 0 ? `Toque para ver a próxima (+${restantes})` : 'Toque para dispensar'}
+        <Icon name="trophy" size={28} className={cn('mt-sp-1 shrink-0', TIER_TEXT[conquista.tier])} />
+        <span className="flex min-w-0 flex-col gap-sp-1">
+          <span className="text-caption uppercase tracking-wide text-text-muted">
+            Conquista desbloqueada ·{' '}
+            <span className={TIER_TEXT[conquista.tier]}>{TIER_LABEL[conquista.tier]}</span>
+          </span>
+          <span className="text-subhead">{conquista.titulo}</span>
+          <span className="text-label text-text-secondary">{conquista.descricao}</span>
+          <span className="mt-sp-1 text-caption text-text-muted">
+            {restantes > 0 ? `Toque para ver a próxima (+${restantes})` : 'Toque para dispensar'}
+          </span>
         </span>
       </button>
     </div>
