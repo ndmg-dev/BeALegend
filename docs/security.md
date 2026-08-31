@@ -86,6 +86,26 @@ nunca aceita filtro vindo do cliente. A RLS protege as tabelas de *dados*.
 - Assinaturas Web Push ficam fora do sync, sob RLS. Um endpoint só pode ter um
   dono e é transferido de forma atômica ao trocar de conta no mesmo navegador.
 
+## Dados que saem para terceiros (insights de nutrição por IA)
+
+A feature de insights nutricionais é a **única** que envia dados do usuário
+para fora da infra. Salvaguardas:
+
+- **Desligada por padrão.** Só roda com `NUTRITION_INSIGHTS_ENABLED=true` e,
+  por cima disso, com opt-in explícito por usuário
+  (`notification_preference.insights_ia_enabled`, default `false`). Em
+  produção, `enabled` sem `OPENAI_API_KEY` recusa a inicialização — para não
+  cair no provider fake sem ninguém perceber.
+- **O que sai:** um resumo **agregado** montado por
+  `app/services/insights/builder.py` — contagens, distribuição de aderência,
+  tags e descrições recorrentes (truncadas), total de água, nº de treinos. O
+  campo `meal_log.notas` (texto mais livre) **nunca** entra no payload.
+- **Para onde:** endpoint `/chat/completions` da OpenAI, `OPENAI_BASE_URL`.
+- **A tabela `nutrition_insight`** guarda o texto gerado sob RLS, no mesmo
+  molde das outras (policy por `app_current_user_id()`), e fica fora do
+  `/sync/batch` — só o servidor escreve.
+- Falha do provider nunca vaza para o usuário: vira `204` / "sem insight".
+
 ## Segredos
 
 `./infra/gen-secrets.sh <dominio>` gera `infra/.env` (modo 600) com senhas

@@ -13,6 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.config import get_settings
+from app.services.insights import build_provider, processar_insights_semanais
 from app.services.push import dispatch_due_notifications
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -48,6 +49,13 @@ async def deliver_notifications() -> None:
         log.info("notificacoes processadas", extra={"quantidade": delivered})
 
 
+async def gerar_insights_semanais() -> None:
+    async with OwnerSession() as session:
+        gerados = await processar_insights_semanais(session, build_provider())
+    if gerados:
+        log.info("insights semanais gerados", extra={"quantidade": gerados})
+
+
 def build_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler(timezone="UTC")
     scheduler.add_job(heartbeat, "interval", minutes=15, id="heartbeat-log")
@@ -65,6 +73,15 @@ def build_scheduler() -> AsyncIOScheduler:
         max_instances=1,
         coalesce=True,
         misfire_grace_time=50,
+    )
+    scheduler.add_job(
+        gerar_insights_semanais,
+        "cron",
+        minute="*/15",
+        id="nutrition-insights",
+        max_instances=1,
+        coalesce=True,
+        misfire_grace_time=120,
     )
     return scheduler
 

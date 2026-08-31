@@ -8,7 +8,8 @@ Gating (nesta ordem, barato antes de caro):
 """
 
 import logging
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -16,7 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings, get_settings
 from app.ids import uuid7
-from app.models import NotificationPreference, NutritionInsight
+from app.models import NotificationPreference, NutritionInsight, User
 from app.services.insights.builder import montar_dados_diarios, montar_dados_semanais
 from app.services.insights.fake_provider import FakeProvider
 from app.services.insights.openai_provider import OpenAIProvider
@@ -143,3 +144,60 @@ async def gerar_insight_semanal(
         return None
 
     return await _upsert(session, user_id, "semanal", semana_inicio, result.texto, result.modelo)
+
+
+def _agora_local(now: datetime, timezone: str) -> datetime:
+    try:
+        return now.astimezone(ZoneInfo(timezone))
+    except ZoneInfoNotFoundError:
+        return now.astimezone(UTC)
+
+
+async def processar_insights_semanais(
+    session: AsyncSession,
+    provider: InsightProvider,
+    *,
+    now: datetime | None = None,
+    limite: int = 200,
+) -> int:
+    """Job do worker: gera o insight semanal de quem optou por ele.
+
+    Roda com ``OwnerSession`` (sem RLS), então filtra tudo por ``user_id``
+    explícito. Dispara no dia/horário do resumo semanal do usuário — a partir
+    dele, não num minuto exato, para um cron de 15 em 15 não perder a janela.
+    Idempotente pelo ``unique (user_id, tipo, periodo_ref)``.
+    """
+    settings = get_settings()
+    if not settings.nutrition_insights_enabled:
+        return 0
+
+    now = (now or datetime.now(UTC)).astimezone(UTC)
+    prefs = list(
+        await session.scalars(
+            select(NotificationPreference).where(
+                NotificationPreference.insights_ia_enabled.is_(True)
+            )
+        )
+    )
+
+    gerados = 0
+    for pref in prefs:
+        if gerados >= limite:
+            log.warning("teto de insights semanais atingido", extra={"limite": limite})
+            break
+        user = await session.get(User, pref.user_id)
+        if user is None or not user.is_active:
+            continue
+        local_now = _agora_local(now, user.timezone)
+        if local_now.weekday() != pref.resumo_dia_semana:
+            continue
+        if local_now.time() < pref.resumo_horario:
+            continue
+        semana_inicio = local_now.date() - timedelta(days=local_now.weekday())
+        if await _existente(session, user.id, "semanal", semana_inicio) is not None:
+            continue
+        if await gerar_insight_semanal(
+            session, user.id, semana_inicio, provider, settings=settings
+        ):
+            gerados += 1
+    return gerados

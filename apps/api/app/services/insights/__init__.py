@@ -11,6 +11,7 @@ from app.services.insights.service import (
     gerar_insight_diario,
     gerar_insight_semanal,
     get_insight_provider,
+    processar_insights_semanais,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "gerar_insight_diario",
     "gerar_insight_semanal",
     "get_insight_provider",
+    "processar_insights_semanais",
 ]

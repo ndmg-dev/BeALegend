@@ -21,8 +21,17 @@
 > `dependency_overrides`. Boot falha em produção se
 > `NUTRITION_INSIGHTS_ENABLED=true` sem chave. 9 testes com `httpx.MockTransport`.
 >
-> Pendente: fase 3 (job do worker), fase 4 (frontend), fase 5 (aviso no
-> `docs/security.md`, tirar `notas` do payload).
+> **Fase 3 implementada** (31/08/2026): `processar_insights_semanais` +
+> job `nutrition-insights` no `worker.py` (`cron */15`). Dispara no dia/horário
+> do resumo semanal do usuário, a partir dele (não num minuto exato).
+> Idempotente pelo unique. Teto de 200/ciclo. 5 testes.
+>
+> **Fase 5 implementada** (31/08/2026): `docs/security.md` ganhou a seção
+> "Dados que saem para terceiros". O `builder` já nunca incluiu `meal_log.notas`
+> no payload — confirmado.
+>
+> Pendente: **fase 4 (frontend)** — cliente de API, tabela Dexie, card na
+> tela Nutrição, toggle de opt-in em NotificationSettings.
 
 ## Objetivo
 
