@@ -27,7 +27,7 @@ class Faixa:
 
 
 def parse_faixa(texto: str | None) -> Faixa:
-    """"2–3", "8–12 / perna", "30–60 s", "–" (sem RIR/descanso aplicável)."""
+    """ "2–3", "8–12 / perna", "30–60 s", "–" (sem RIR/descanso aplicável)."""
     if texto is None:
         return Faixa(None, None)
 
@@ -54,7 +54,7 @@ def parse_faixa(texto: str | None) -> Faixa:
 
 
 def parse_descanso_segundos(texto: str | None) -> int | None:
-    """"90 s" -> 90; "60–90 s" -> ponto médio, 75. Um alvo único para o timer."""
+    """ "90 s" -> 90; "60–90 s" -> ponto médio, 75. Um alvo único para o timer."""
     if texto is None:
         return None
     bruto = texto.strip().lower()

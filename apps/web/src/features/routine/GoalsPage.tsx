@@ -10,6 +10,8 @@ import {
   setHabitCompleted,
 } from '@/data/db/routineRepo';
 import { sincronizar } from '@/data/sync/engine';
+import { weeklySummary } from '@/data/db/summaryRepo';
+import { formatMoney } from '@/domain/finance/money';
 import {
   completedThisWeek,
   isHabitDue,
@@ -27,6 +29,8 @@ import { EmptyState } from '@/ui/EmptyState';
 import { ProgressRing } from '@/ui/ProgressRing';
 import { StreakBadge } from '@/ui/StreakBadge';
 import { TextField } from '@/ui/TextField';
+import { StatCard } from '@/ui/StatCard';
+import { NotificationSettings } from './NotificationSettings';
 
 const DOMAIN_COLOR: Record<string, string> = {
   treino: 'var(--tr-400)', nutricao: 'var(--nu-400)', financas: 'var(--fi-400)', rotina: 'var(--ro-400)',
@@ -40,6 +44,7 @@ export function GoalsPage() {
   const data = useLiveQuery(async () => ({
     habits: await habits(), checkins: await checkins(), goals: await activeGoals(),
     snapshot: await metricSnapshot(today),
+    weekly: await weeklySummary(today),
   }), [today]);
 
   useEffect(() => {
@@ -87,6 +92,16 @@ export function GoalsPage() {
         return done.length > 0 ? 'partial' : 'empty';
       }} />
 
+      <div>
+        <h2 className="mb-sp-3 text-heading">Resumo da semana</h2>
+        <div className="grid grid-cols-2 gap-sp-3">
+          <StatCard label="Treinos" value={data.weekly.trainingCount} detail="concluídos" />
+          <StatCard label="Alimentação" value={`${data.weekly.adherencePercent}%`} detail={`${data.weekly.mealsCount} refeições`} />
+          <StatCard label="Gastos" value={formatMoney(data.weekly.expenseCents)} detail="nesta semana" />
+          <StatCard label="Hábitos" value={`${data.weekly.completedHabits}/${data.weekly.expectedHabits}`} detail="check-ins" />
+        </div>
+      </div>
+
       <Card className="border-l-[3px] border-l-rotina-400">
         <h2 className="mb-sp-3 text-heading">Hábitos de hoje</h2>
         {due.length ? <div className="flex flex-col gap-sp-2">{due.map((habit) => {
@@ -120,6 +135,8 @@ export function GoalsPage() {
           <Button disabled={!name.trim()} onClick={() => void addHabit()}>Adicionar hábito</Button>
         </div>
       </Card>
+
+      <NotificationSettings eligible={data.checkins.some((item) => item.concluido)} />
     </section>
   );
 }

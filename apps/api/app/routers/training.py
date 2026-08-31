@@ -26,7 +26,7 @@ DIAS_PY_PARA_PT = ("segunda", "terca", "quarta", "quinta", "sexta", "sabado", "d
 
 
 def hoje_no_fuso(timezone: str) -> date:
-    """"Hoje" é decisão de fuso, nunca de UTC nem do relógio do servidor."""
+    """ "Hoje" é decisão de fuso, nunca de UTC nem do relógio do servidor."""
     try:
         return datetime.now(ZoneInfo(timezone)).date()
     except ZoneInfoNotFoundError:

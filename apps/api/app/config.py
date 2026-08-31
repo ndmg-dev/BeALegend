@@ -1,15 +1,17 @@
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
+    app_env: str = "development"
+    allowed_hosts: str = "localhost,127.0.0.1,test,testserver"
+
     database_url: str = "postgresql+asyncpg://bealegend_app:changeme_app@localhost:5432/bealegend"
-    database_owner_url: str = (
-        "postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend"
-    )
+    database_owner_url: str = "postgresql+asyncpg://bealegend:changeme@localhost:5432/bealegend"
 
     jwt_secret: str = "dev-only-change-me"
     jwt_algorithm: str = "HS256"
@@ -38,6 +40,16 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def allowed_host_list(self) -> list[str]:
+        return [host.strip() for host in self.allowed_hosts.split(",") if host.strip()]
+
+    @model_validator(mode="after")
+    def production_secrets_are_explicit(self):
+        if self.app_env == "production" and self.jwt_secret == "dev-only-change-me":
+            raise ValueError("JWT_SECRET precisa ser configurado em producao")
+        return self
 
 
 @lru_cache

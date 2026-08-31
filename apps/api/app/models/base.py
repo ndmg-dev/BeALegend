@@ -29,7 +29,6 @@ class TimestampMixin:
     )
 
 
-
 class SyncMixin(TimestampMixin):
     """Tudo que o cliente sincroniza carrega estes dois campos.
 

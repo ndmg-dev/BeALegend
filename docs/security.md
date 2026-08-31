@@ -77,6 +77,14 @@ nunca aceita filtro vindo do cliente. A RLS protege as tabelas de *dados*.
   inválida não distingue e-mail inexistente de senha errada.
 - Caddy adiciona HSTS, `nosniff`, `X-Frame-Options: DENY` e referrer policy.
 - O container da API roda como usuário não-root.
+- API e worker rodam com filesystem somente leitura, sem capabilities Linux e
+  com `no-new-privileges`.
+- O host é validado pelo `TrustedHostMiddleware`; em produção, o segredo JWT
+  padrão faz a aplicação recusar a inicialização.
+- O Caddy adiciona CSP, `Permissions-Policy` e `Cross-Origin-Opener-Policy`,
+  além dos cabeçalhos já descritos.
+- Assinaturas Web Push ficam fora do sync, sob RLS. Um endpoint só pode ter um
+  dono e é transferido de forma atômica ao trocar de conta no mesmo navegador.
 
 ## Segredos
 
@@ -85,9 +93,7 @@ aleatórias e um par de chaves VAPID. Ele se recusa a sobrescrever um `.env`
 existente: trocar `JWT_SECRET` desloga todo mundo e trocar `APP_DB_PASSWORD`
 exige `ALTER ROLE` no Postgres.
 
-## O que ainda não está fechado
+## Fora do escopo da v1
 
-- Idempotência de escrita (fase 1) — sem ela, um retry após timeout duplica
-  lançamento de gasto.
 - Rotação de `JWT_SECRET` e revogação em massa por usuário.
 - Verificação de e-mail e recuperação de senha.

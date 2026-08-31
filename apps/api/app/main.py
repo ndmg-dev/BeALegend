@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -13,6 +14,7 @@ from app.routers import (
     exercises,
     finance,
     health,
+    notifications,
     nutrition,
     routine,
     sync,
@@ -29,6 +31,7 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_host_list)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -38,6 +41,16 @@ app.add_middleware(
 )
 
 register_error_handlers(app)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):  # noqa: ANN001
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(self), geolocation=(), microphone=()"
+    return response
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -62,5 +75,6 @@ app.include_router(sync.router)
 app.include_router(training.router)
 app.include_router(finance.router)
 app.include_router(nutrition.router)
+app.include_router(notifications.router)
 app.include_router(routine.router)
 app.include_router(dashboard.router)

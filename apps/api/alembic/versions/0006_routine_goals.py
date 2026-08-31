@@ -22,13 +22,19 @@ TABLES = ("habit", "habit_checkin", "goal")
 
 def _sync_columns() -> list[sa.Column]:
     return [
-        sa.Column("row_version", sa.BigInteger(), nullable=False,
-                  server_default=sa.text("nextval('sync_version_seq')")),
+        sa.Column(
+            "row_version",
+            sa.BigInteger(),
+            nullable=False,
+            server_default=sa.text("nextval('sync_version_seq')"),
+        ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("criado_em", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
+        sa.Column(
+            "criado_em", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     ]
 
 
@@ -51,9 +57,7 @@ def _add_sync_rls(table: str) -> None:
             )
         else:
             clause = "USING (user_id = app_current_user_id())"
-        op.execute(
-            f"CREATE POLICY {table}_{action} ON {table} FOR {action.upper()} {clause}"
-        )
+        op.execute(f"CREATE POLICY {table}_{action} ON {table} FOR {action.upper()} {clause}")
     op.execute(f"GRANT SELECT, INSERT, UPDATE, DELETE ON {table} TO {APP_ROLE}")
 
 
@@ -69,9 +73,7 @@ def upgrade() -> None:
         sa.Column("ativo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_sync_columns(),
         sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint(
-            "meta_por_semana BETWEEN 1 AND 7", name="meta_por_semana_valida"
-        ),
+        sa.CheckConstraint("meta_por_semana BETWEEN 1 AND 7", name="meta_por_semana_valida"),
     )
     op.create_index("ix_habit_user_id_nome", "habit", ["user_id", "nome"])
 
@@ -104,9 +106,7 @@ def upgrade() -> None:
         sa.Column("status", sa.String(10), nullable=False, server_default="ativa"),
         *_sync_columns(),
         sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint(
-            "dominio IN ('treino','nutricao','financas','rotina')", name="dominio"
-        ),
+        sa.CheckConstraint("dominio IN ('treino','nutricao','financas','rotina')", name="dominio"),
         sa.CheckConstraint("tipo IN ('numerica','binaria','habito')", name="tipo"),
         sa.CheckConstraint("status IN ('ativa','concluida','arquivada')", name="status"),
         sa.CheckConstraint("alvo > 0", name="alvo_positivo"),

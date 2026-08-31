@@ -15,8 +15,11 @@ RRULE_WEEKDAY = ("MO", "TU", "WE", "TH", "FR", "SA", "SU")
 
 def habit_is_due(habit: Habit, day) -> bool:
     by_day = next(
-        (part.removeprefix("BYDAY=") for part in habit.frequencia_rrule.split(";")
-         if part.startswith("BYDAY=")),
+        (
+            part.removeprefix("BYDAY=")
+            for part in habit.frequencia_rrule.split(";")
+            if part.startswith("BYDAY=")
+        ),
         None,
     )
     if by_day is not None:

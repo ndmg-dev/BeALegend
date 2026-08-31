@@ -22,13 +22,19 @@ TABLES = ("account", "category", "recurring", "transaction", "budget")
 
 def _sync_columns() -> list[sa.Column]:
     return [
-        sa.Column("row_version", sa.BigInteger(), nullable=False,
-                  server_default=sa.text("nextval('sync_version_seq')")),
+        sa.Column(
+            "row_version",
+            sa.BigInteger(),
+            nullable=False,
+            server_default=sa.text("nextval('sync_version_seq')"),
+        ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("criado_em", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False,
-                  server_default=sa.func.now()),
+        sa.Column(
+            "criado_em", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
+        ),
     ]
 
 

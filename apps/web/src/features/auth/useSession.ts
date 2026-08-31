@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { User } from '@/data/api/auth';
 import * as api from '@/data/api/auth';
 import { lerUsuarioLocal, gravarUsuarioLocal, limparUsuarioLocal } from '@/data/db/sessionRepo';
+import { unregisterSubscription } from '@/data/api/notifications';
+import { currentSubscription } from '@/platform/notifications';
 
 type Status = 'carregando' | 'autenticado' | 'anonimo';
 
@@ -72,6 +74,11 @@ export const useSession = create<SessionState>((set) => ({
   },
 
   logout: async () => {
+    const subscription = await currentSubscription().catch(() => null);
+    if (subscription) {
+      await unregisterSubscription(subscription.endpoint).catch(() => undefined);
+      await subscription.unsubscribe().catch(() => false);
+    }
     await api.logout().catch(() => undefined);
     await limparUsuarioLocal();
     set({ status: 'anonimo', user: null, offline: false });

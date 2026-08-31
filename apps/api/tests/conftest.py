@@ -81,7 +81,8 @@ async def _clean_db():
     async with engine.begin() as conn:
         await conn.execute(
             text(
-                'TRUNCATE idempotency_record, habit_checkin, habit, goal, '
+                'TRUNCATE notification_delivery, push_subscription, notification_preference, '
+                'idempotency_record, habit_checkin, habit, goal, '
                 'water_log, meal_log, meal_slot, meal_plan, '
                 'budget, "transaction", recurring, category, account, '
                 "set_log, cardio_log, body_metric, session, "

@@ -27,9 +27,7 @@ async def list_exercises(user: CurrentUser, session: DbSession) -> list[Exercise
 
 
 @router.post("", response_model=ExerciseOut, status_code=201)
-async def create_exercise(
-    body: ExerciseCreate, user: CurrentUser, session: DbSession
-) -> Exercise:
+async def create_exercise(body: ExerciseCreate, user: CurrentUser, session: DbSession) -> Exercise:
     exercise = Exercise(
         id=body.id or uuid7(),
         user_id=user.id,

@@ -100,9 +100,7 @@ def _rejeitar(op: SyncOperation, title: str, detail: str) -> SyncResult:
     )
 
 
-async def aplicar_operacao(
-    session: AsyncSession, user_id: UUID, op: SyncOperation
-) -> SyncResult:
+async def aplicar_operacao(session: AsyncSession, user_id: UUID, op: SyncOperation) -> SyncResult:
     guardado = await _resultado_guardado(session, user_id, op.idempotency_key)
     if guardado is not None:
         return SyncResult(**{**guardado, "status": "duplicate"})
@@ -154,9 +152,7 @@ async def aplicar_operacao(
 
     elif op.operacao == "update":
         if existente is None or existente.deleted_at is not None:
-            return _rejeitar(
-                op, "Registro inexistente", "A linha nao existe ou ja foi apagada."
-            )
+            return _rejeitar(op, "Registro inexistente", "A linha nao existe ou ja foi apagada.")
         if entidade.schema_patch is None:
             return _rejeitar(op, "Operacao nao permitida", "Entidade nao aceita update.")
         try:

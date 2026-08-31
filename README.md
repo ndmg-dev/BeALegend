@@ -10,6 +10,7 @@ próprio, deploy em VPS.
 - Finanças: [`docs/finance.md`](docs/finance.md)
 - Nutrição: [`docs/nutrition.md`](docs/nutrition.md)
 - Rotina, metas e Hoje: [`docs/routine-dashboard.md`](docs/routine-dashboard.md)
+- Notificações e resumo semanal: [`docs/notifications.md`](docs/notifications.md)
 
 ## Estado
 
@@ -21,7 +22,7 @@ próprio, deploy em VPS.
 | 3 | Finanças | ✅ |
 | 4 | Nutrição | ✅ |
 | 5 | Rotina, metas, tela Hoje | ✅ |
-| 6 | Web Push, resumo semanal, hardening | — |
+| 6 | Web Push, resumo semanal, hardening | ✅ |
 
 ## Repositório
 

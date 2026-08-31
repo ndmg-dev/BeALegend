@@ -27,9 +27,12 @@ test('painel e metas mantêm check-in offline após reload', async ({ page, cont
   await expect(page.getByText('3 treinos na semana')).toBeVisible();
   await expect(page.getByText('Beber 2 L de água')).toBeVisible();
   await expect(page.getByText('1 de 2 hábitos')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Resumo da semana' })).toBeVisible();
+  await expect(page.getByText('1/12')).toBeVisible();
 
   await context.setOffline(false);
   await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect(page.getByRole('heading', { name: 'Lembretes' })).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'para enviar' })).toHaveCount(0, {
     timeout: 20_000,
   });

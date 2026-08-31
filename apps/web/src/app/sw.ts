@@ -38,12 +38,18 @@ self.addEventListener('message', (event) => {
  */
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  const payload = event.data.json() as { title?: string; body?: string; url?: string };
+  const payload = event.data.json() as {
+    title?: string;
+    body?: string;
+    url?: string;
+    tag?: string;
+  };
   event.waitUntil(
     self.registration.showNotification(payload.title ?? 'BeALegend', {
       body: payload.body ?? '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
+      ...(payload.tag ? { tag: payload.tag } : {}),
       data: { url: payload.url ?? '/' },
     }),
   );
@@ -54,8 +60,8 @@ self.addEventListener('notificationclick', (event) => {
   const url = (event.notification.data as { url?: string } | undefined)?.url ?? '/';
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-      const existing = clients.find((c) => 'focus' in c);
-      if (existing) return existing.focus();
+      const existing = clients.find((client): client is WindowClient => 'navigate' in client);
+      if (existing) return existing.navigate(url).then((client) => client?.focus());
       return self.clients.openWindow(url);
     }),
   );

@@ -25,9 +25,34 @@ export async function requestPermission(): Promise<NotificationPermission | 'uns
   return Notification.requestPermission();
 }
 
-/** Fase 6 conecta isto ao endpoint de subscription do servidor. */
 export async function currentSubscription(): Promise<PushSubscription | null> {
   if (!notificationsSupported()) return null;
   const registration = await navigator.serviceWorker.ready;
   return registration.pushManager.getSubscription();
+}
+
+function applicationServerKey(value: string): Uint8Array<ArrayBuffer> {
+  const padding = '='.repeat((4 - (value.length % 4)) % 4);
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const bytes = Uint8Array.from(atob(base64), (character) => character.charCodeAt(0));
+  return new Uint8Array(bytes.buffer);
+}
+
+export async function subscribeToNotifications(publicKey: string): Promise<PushSubscription> {
+  if (!notificationsSupported()) throw new Error('Notificações não são suportadas neste aparelho.');
+  const registration = await navigator.serviceWorker.ready;
+  const existing = await registration.pushManager.getSubscription();
+  if (existing) return existing;
+  return registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: applicationServerKey(publicKey),
+  });
+}
+
+export async function unsubscribeFromNotifications(): Promise<string | null> {
+  const subscription = await currentSubscription();
+  if (!subscription) return null;
+  const endpoint = subscription.endpoint;
+  await subscription.unsubscribe();
+  return endpoint;
 }
