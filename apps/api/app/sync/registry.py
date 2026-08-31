@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from pydantic import BaseModel
 
+from app.models.achievements import AchievementUnlock
 from app.models.base import Base
 from app.models.exercise import Exercise
 from app.models.finance import Account, Budget, Category, FinanceTransaction, Recurring
@@ -24,6 +25,7 @@ from app.models.training import (
     SetLog,
     TrainingPlan,
 )
+from app.schemas.achievements import AchievementUnlockCreate
 from app.schemas.exercise import ExerciseCreate, ExercisePatch
 from app.schemas.finance import (
     AccountCreate,
@@ -232,6 +234,14 @@ REGISTRY: dict[str, SyncEntity] = {
         model=Goal,
         schema_create=GoalCreate,
         schema_patch=GoalPatch,
+    ),
+    # Conquista desbloqueada: nasce no cliente e nunca muda. append_only.
+    "achievement_unlock": SyncEntity(
+        nome="achievement_unlock",
+        model=AchievementUnlock,
+        schema_create=AchievementUnlockCreate,
+        schema_patch=None,
+        append_only=True,
     ),
 }
 

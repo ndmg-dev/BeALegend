@@ -4,6 +4,7 @@ import { ApiError, NetworkError } from '@/data/api/problem';
 import {
   META_CURSOR,
   META_ULTIMO_SYNC,
+  achievementUnlockSchema,
   accountSchema,
   budgetSchema,
   categorySchema,
@@ -80,6 +81,7 @@ const SCHEMAS = {
   habit: habitSchema,
   habit_checkin: habitCheckinSchema,
   goal: goalSchema,
+  achievement_unlock: achievementUnlockSchema,
 } as const;
 type EntidadeConhecida = keyof typeof SCHEMAS;
 
@@ -103,6 +105,7 @@ const TABELAS = {
   habit: db.habit,
   habit_checkin: db.habit_checkin,
   goal: db.goal,
+  achievement_unlock: db.achievement_unlock,
 } as const;
 
 function ehEntidadeConhecida(nome: string): nome is EntidadeConhecida {

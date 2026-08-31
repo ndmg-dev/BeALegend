@@ -1,3 +1,4 @@
+from app.models.achievements import AchievementUnlock
 from app.models.base import Base, SyncMixin
 from app.models.exercise import Exercise
 from app.models.finance import Account, Budget, Category, FinanceTransaction, Recurring
@@ -18,6 +19,7 @@ from app.models.training import (
 from app.models.user import RefreshToken, User
 
 __all__ = [
+    "AchievementUnlock",
     "Base",
     "BodyMetric",
     "Budget",

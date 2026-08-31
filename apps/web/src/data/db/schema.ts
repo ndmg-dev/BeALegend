@@ -222,6 +222,17 @@ export const goalSchema = z.object({
 });
 export type Goal = z.infer<typeof goalSchema>;
 
+// ---------------------------------------------------------------------------
+// Conquistas — marcador append-only. A verdade é o evaluate puro em
+// domain/achievements; esta linha só fixa a data e a comemoração.
+// ---------------------------------------------------------------------------
+
+export const achievementUnlockSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(),
+  achievement_key: z.string(), desbloqueado_em: z.string(), ...syncFields,
+});
+export type AchievementUnlock = z.infer<typeof achievementUnlockSchema>;
+
 export const operacaoSchema = z.enum(['create', 'update', 'delete']);
 export type Operacao = z.infer<typeof operacaoSchema>;
 
@@ -273,6 +284,7 @@ class BeALegendDB extends Dexie {
   habit!: EntityTable<Habit, 'id'>;
   habit_checkin!: EntityTable<HabitCheckin, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
+  achievement_unlock!: EntityTable<AchievementUnlock, 'id'>;
 
   constructor() {
     super('bealegend');
@@ -363,6 +375,32 @@ class BeALegendDB extends Dexie {
       habit_checkin: 'id, habit_id, data, concluido, row_version, deleted_at',
       goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
     });
+
+    // v6 — conquistas: marcador append-only de troféu desbloqueado.
+    this.version(6).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+      meal_plan: 'id, ativo, row_version, deleted_at',
+      meal_slot: 'id, meal_plan_id, ordem, row_version, deleted_at',
+      meal_log: 'id, data, slot_id, horario, row_version, deleted_at',
+      water_log: 'id, data, registrado_em, row_version, deleted_at',
+      habit: 'id, nome, ativo, row_version, deleted_at',
+      habit_checkin: 'id, habit_id, data, concluido, row_version, deleted_at',
+      goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
+      achievement_unlock: 'id, achievement_key, row_version, deleted_at',
+    });
   }
 }
 
@@ -409,6 +447,7 @@ export async function limparTudo(): Promise<void> {
     db.habit,
     db.habit_checkin,
     db.goal,
+    db.achievement_unlock,
   ] as const;
   await db.transaction('rw', tabelas, async () => {
     await Promise.all(tabelas.map((t) => t.clear()));
