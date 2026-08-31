@@ -1,17 +1,16 @@
 # Deploy no Coolify. Fica na raiz do repo de propósito: o Coolify roda
-# `docker compose --project-directory <raiz>`, e caminhos relativos de
-# `build.context` são resolvidos a partir dela — um `context: ..` escaparia
-# do repo. Aqui tudo é relativo à raiz.
+# `docker compose --project-directory <raiz>`, e `build.context` é resolvido a
+# partir dela — um `context: ..` escaparia do repo. Aqui tudo é relativo à raiz.
 #
-# Diferenças em relação ao infra/docker-compose.yml (VPS puro):
-#   - o proxy do Coolify termina TLS e roteia o domínio -> caddy:80, então o
-#     Caddy daqui não faz ACME nem abre :443 no host;
-#   - a API confia em qualquer proxy (--forwarded-allow-ips='*'): são dois
-#     saltos (proxy do Coolify -> caddy -> api).
+# Diferenças em relação ao infra/docker-compose.yml (VPS puro): sem Caddy. O
+# proxy do Coolify termina TLS e roteia o domínio para o serviço `web` (porta
+# 80); o nginx do `web` serve o PWA e encaminha /api/* para `api:8000`. A API
+# confia em qualquer proxy (--forwarded-allow-ips='*'): proxy do Coolify ->
+# nginx -> api.
 #
 # No Coolify: recurso "Docker Compose", Base Directory `/`, Compose Location
-# `/docker-compose.coolify.yml`. Depois, no serviço `caddy` (porta 80),
-# defina o domínio. As variáveis abaixo entram na aba Environment.
+# `/docker-compose.coolify.yml`. Domínio no serviço `web` (porta 80). As
+# variáveis abaixo entram na aba Environment.
 
 services:
   db:
@@ -108,28 +107,20 @@ services:
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
 
+  # Ponto de entrada único: o proxy do Coolify roteia o domínio para cá
+  # (porta 80). O nginx serve o PWA e encaminha /api/* para o serviço `api`
+  # — mesma origem, então cookie de auth e CSP continuam simples. Sem Caddy:
+  # o Coolify sempre quer rotear para este serviço mesmo, então deixamos.
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        # Mesma origem do front: o Caddy encaminha /api -> api:8000.
         VITE_API_URL: /api
     restart: unless-stopped
-
-  caddy:
-    build:
-      context: .
-      dockerfile: infra/caddy.Dockerfile
-    restart: unless-stopped
-    depends_on: [api, web]
+    depends_on: [api]
     expose:
       - "80"
-    volumes:
-      - caddy_data:/data
-      - caddy_config:/config
 
 volumes:
   pgdata:
-  caddy_data:
-  caddy_config:
