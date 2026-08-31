@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, currentStreak, daysBetween, toLocalDate } from './day';
+import { addDays, currentStreak, daysBetween, longestStreak, toLocalDate } from './day';
 
 const SP = 'America/Sao_Paulo';
 
@@ -58,5 +58,25 @@ describe('currentStreak', () => {
 
   it('é 0 sem nenhum registro', () => {
     expect(currentStreak([], '2025-05-03')).toBe(0);
+  });
+});
+
+describe('longestStreak', () => {
+  it('acha o recorde no meio da lista, não o do fim', () => {
+    expect(
+      longestStreak(['2025-01-01', '2025-01-02', '2025-01-03', '2025-01-10', '2025-01-11']),
+    ).toBe(3);
+  });
+
+  it('ignora ordem e duplicatas', () => {
+    expect(longestStreak(['2025-01-03', '2025-01-01', '2025-01-02', '2025-01-02'])).toBe(3);
+  });
+
+  it('é 1 quando não há nenhum par consecutivo', () => {
+    expect(longestStreak(['2025-01-01', '2025-01-05', '2025-01-20'])).toBe(1);
+  });
+
+  it('é 0 sem registros', () => {
+    expect(longestStreak([])).toBe(0);
   });
 });

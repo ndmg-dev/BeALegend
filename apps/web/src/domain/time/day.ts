@@ -30,6 +30,17 @@ export function toLocalDate(instant: Date, timeZone: string): LocalDate {
   return formatter(timeZone).format(instant);
 }
 
+/** A hora (0–23) de `instant` no fuso do usuário. */
+export function localHour(instant: Date, timeZone: string): number {
+  const h = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    hour12: false,
+  }).format(instant);
+  // 'en-GB' devolve "24" à meia-noite em alguns runtimes — normaliza.
+  return Number(h) % 24;
+}
+
 /** Quantos dias civis separam duas datas locais. Positivo se `b` vem depois. */
 export function daysBetween(a: LocalDate, b: LocalDate): number {
   const ms = Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`);
@@ -64,4 +75,23 @@ export function currentStreak(dates: readonly LocalDate[], hoje: LocalDate): num
     anterior = d;
   }
   return streak;
+}
+
+/**
+ * Maior sequência de dias consecutivos em qualquer ponto da lista.
+ *
+ * Diferente de `currentStreak`: não olha se termina hoje, olha o recorde
+ * histórico. "Manteve o hábito 7 dias seguidos" é sobre isto.
+ */
+export function longestStreak(dates: readonly LocalDate[]): number {
+  const unique = [...new Set(dates)].sort();
+  if (unique.length === 0) return 0;
+
+  let melhor = 1;
+  let atual = 1;
+  for (let i = 1; i < unique.length; i += 1) {
+    atual = daysBetween(unique[i - 1] as LocalDate, unique[i] as LocalDate) === 1 ? atual + 1 : 1;
+    if (atual > melhor) melhor = atual;
+  }
+  return melhor;
 }

@@ -17,6 +17,14 @@ interface EnfileirarInput {
   operacao: Operacao;
   registroId: string;
   payload?: Record<string, unknown>;
+  /**
+   * Sobrescreve a chave de idempotência gerada. Use só quando a dedup precisa
+   * ser estável **entre dispositivos**, não só entre retentativas: conquistas
+   * usam `unlock:<key>`, então dois aparelhos que detectam o mesmo troféu
+   * mandam a mesma chave e o servidor devolve `duplicate` em vez de estourar
+   * o unique.
+   */
+  idempotencyKeyFixa?: string;
 }
 
 export async function enfileirar({
@@ -24,6 +32,7 @@ export async function enfileirar({
   operacao,
   registroId,
   payload = {},
+  idempotencyKeyFixa,
 }: EnfileirarInput): Promise<OutboxItem> {
   const item: OutboxItem = {
     id_local: uuidv7(),
@@ -33,7 +42,7 @@ export async function enfileirar({
     payload,
     // A chave nasce aqui e não muda mais: é o mesmo item lógico em toda
     // retentativa, e é assim que o servidor reconhece o reenvio.
-    idempotency_key: idempotencyKey(),
+    idempotency_key: idempotencyKeyFixa ?? idempotencyKey(),
     criado_em: Date.now(),
     tentativas: 0,
     ultima_tentativa_em: null,
