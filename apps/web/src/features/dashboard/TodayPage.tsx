@@ -58,14 +58,16 @@ export function TodayPage() {
   const streak = Math.max(0, ...data.habits.map((habit) => streakForHabit(
     data.checkins.filter((item) => item.habit_id === habit.id && item.concluido).map((item) => item.data), today,
   )));
-  const headingDate = new Intl.DateTimeFormat('pt-BR', {
+  const dataFmt = new Intl.DateTimeFormat('pt-BR', {
     weekday: 'long', day: 'numeric', month: 'long', timeZone: user.timezone,
   }).format(new Date());
+  // Só a primeira letra maiúscula — `capitalize` do CSS deixaria "Segunda-Feira De Agosto".
+  const headingDate = dataFmt.charAt(0).toUpperCase() + dataFmt.slice(1);
 
   return (
     <section className="mx-auto flex max-w-2xl flex-col gap-sp-5">
       <header className="flex items-start justify-between gap-sp-3">
-        <div><p className="text-label capitalize text-text-muted">{headingDate}</p><h1 className="text-title">Hoje</h1></div>
+        <div><p className="text-label text-text-muted">{headingDate}</p><h1 className="text-title">Hoje</h1></div>
         <StreakBadge days={streak} />
       </header>
 

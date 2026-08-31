@@ -46,7 +46,7 @@ export function AuthPage({ modo }: { modo: Modo }) {
   }
 
   return (
-    <main className="grid min-h-dvh place-items-center px-sp-4">
+    <main className="safe-top safe-bottom grid min-h-dvh place-items-center px-sp-4 py-sp-6">
       <Card className="flex w-full max-w-sm flex-col items-center">
         <img src="/assets/logomark.svg" alt="" width={56} height={56} className="rounded-[14px]" />
         <h1 className="mt-sp-4 text-title">{modo === 'entrar' ? 'Entrar' : 'Criar conta'}</h1>
