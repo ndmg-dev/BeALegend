@@ -12,6 +12,7 @@ __pycache__/
 coverage/
 dev-dist/
 dist/
+docs/
 infra/backups/
 node_modules/
 playwright-report/
