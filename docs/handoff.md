@@ -3,6 +3,27 @@
 > Snapshot para retomar o projeto numa conversa nova. Escrito em 31/08/2026,
 > depois de fechar as seis fases da arquitetura original e vestir a marca.
 
+## Prompt pronto para a próxima conversa
+
+A tela **Treino** está mostrando "Nenhum plano ativo" porque o seed da
+planilha ainda não rodou para a conta real (`arthurmm122@gmail.com` — é a
+única conta desta sessão que não é lixo de teste do E2E; as outras
+`treino-*`/`offline-*`/`finance-*@exemplo.com` no banco são todas geradas por
+spec e podem ser ignoradas ou limpas).
+
+Cole isto como primeira mensagem:
+
+> Leia `docs/handoff.md` pra pegar o contexto do projeto. A tela Treino está
+> vazia porque o seed da planilha nunca rodou pra minha conta
+> (`arthurmm122@gmail.com`). Suba o ambiente (API + web, cuidado com a
+> pegadinha da porta 8000 descrita no handoff), rode
+> `scripts/seed_training_plan.py --email arthurmm122@gmail.com` e confirme
+> visualmente que o plano semanal aparece na tela Treino antes de encerrar.
+
+Se a conta tiver mudado ou você quiser usar outra, troque o e-mail no
+comando — confira com `docker exec bl-db psql -U bealegend -d bealegend -c
+"SELECT email FROM app_user ORDER BY criado_em DESC LIMIT 5;"`.
+
 ## O que é o projeto
 
 PWA multiusuário de treino, refeições, gastos e hábitos. Offline-first de
