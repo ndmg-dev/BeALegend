@@ -112,7 +112,7 @@ export function ExecutorPage() {
         </Card>
       ) : (
         <>
-          <Card className="flex justify-around">
+          <Card className="flex flex-wrap justify-around gap-sp-4">
             <NumberStepper
               label="Carga (kg)"
               value={carga}
