@@ -12,7 +12,7 @@ from app.models.base import Base, SyncMixin
 class Account(Base, SyncMixin):
     __tablename__ = "account"
     __table_args__ = (
-        CheckConstraint("tipo IN ('conta','cartao','carteira')", name="tipo"),
+        CheckConstraint("tipo IN ('conta','cartao','carteira')", name="ck_account_tipo"),
         Index("ix_account_user_id_nome", "user_id", "nome"),
     )
 
@@ -28,7 +28,7 @@ class Account(Base, SyncMixin):
 class Category(Base, SyncMixin):
     __tablename__ = "category"
     __table_args__ = (
-        CheckConstraint("tipo IN ('receita','despesa')", name="tipo"),
+        CheckConstraint("tipo IN ('receita','despesa')", name="ck_category_tipo"),
         Index("ix_category_user_id_nome", "user_id", "nome"),
     )
 
@@ -61,8 +61,10 @@ class Recurring(Base, SyncMixin):
 class FinanceTransaction(Base, SyncMixin):
     __tablename__ = "transaction"
     __table_args__ = (
-        CheckConstraint("tipo IN ('receita','despesa','transferencia')", name="tipo"),
-        CheckConstraint("valor_centavos > 0", name="valor_positivo"),
+        CheckConstraint(
+            "tipo IN ('receita','despesa','transferencia')", name="ck_transaction_tipo"
+        ),
+        CheckConstraint("valor_centavos > 0", name="ck_transaction_valor_positivo"),
         Index("ix_transaction_user_id_data", "user_id", "data"),
         Index("ix_transaction_user_id_category", "user_id", "category_id"),
     )
@@ -90,7 +92,7 @@ class FinanceTransaction(Base, SyncMixin):
 class Budget(Base, SyncMixin):
     __tablename__ = "budget"
     __table_args__ = (
-        CheckConstraint("limite_centavos > 0", name="limite_positivo"),
+        CheckConstraint("limite_centavos > 0", name="ck_budget_limite_positivo"),
         Index("uq_budget_user_category_mes", "user_id", "category_id", "mes_ano", unique=True),
     )
 

@@ -21,7 +21,7 @@ from app.models.base import Base, SyncMixin
 class Habit(Base, SyncMixin):
     __tablename__ = "habit"
     __table_args__ = (
-        CheckConstraint("meta_por_semana BETWEEN 1 AND 7", name="meta_por_semana_valida"),
+        CheckConstraint("meta_por_semana BETWEEN 1 AND 7", name="ck_habit_meta_por_semana_valida"),
         Index("ix_habit_user_id_nome", "user_id", "nome"),
     )
 
@@ -58,10 +58,12 @@ class HabitCheckin(Base, SyncMixin):
 class Goal(Base, SyncMixin):
     __tablename__ = "goal"
     __table_args__ = (
-        CheckConstraint("dominio IN ('treino','nutricao','financas','rotina')", name="dominio"),
-        CheckConstraint("tipo IN ('numerica','binaria','habito')", name="tipo"),
-        CheckConstraint("status IN ('ativa','concluida','arquivada')", name="status"),
-        CheckConstraint("alvo > 0", name="alvo_positivo"),
+        CheckConstraint(
+            "dominio IN ('treino','nutricao','financas','rotina')", name="ck_goal_dominio"
+        ),
+        CheckConstraint("tipo IN ('numerica','binaria','habito')", name="ck_goal_tipo"),
+        CheckConstraint("status IN ('ativa','concluida','arquivada')", name="ck_goal_status"),
+        CheckConstraint("alvo > 0", name="ck_goal_alvo_positivo"),
         Index("ix_goal_user_id_status", "user_id", "status"),
     )
 

@@ -73,8 +73,10 @@ def upgrade() -> None:
         sa.Column("tipo", sa.String(12), nullable=False),
         sa.Column("saldo_inicial_centavos", sa.BigInteger(), nullable=False, server_default="0"),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("tipo IN ('conta','cartao','carteira')", name="tipo"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_account_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.CheckConstraint("tipo IN ('conta','cartao','carteira')", name="ck_account_tipo"),
     )
     op.create_index("ix_account_user_id_nome", "account", ["user_id", "nome"])
 
@@ -88,9 +90,13 @@ def upgrade() -> None:
         sa.Column("icone", sa.String(30), nullable=True),
         sa.Column("pai_id", postgresql.UUID(as_uuid=True), nullable=True),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["pai_id"], ["category.id"], ondelete="SET NULL"),
-        sa.CheckConstraint("tipo IN ('receita','despesa')", name="tipo"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_category_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["pai_id"], ["category.id"], name="fk_category_pai_id_category", ondelete="SET NULL"
+        ),
+        sa.CheckConstraint("tipo IN ('receita','despesa')", name="ck_category_tipo"),
     )
     op.create_index("ix_category_user_id_nome", "category", ["user_id", "nome"])
 
@@ -102,7 +108,9 @@ def upgrade() -> None:
         sa.Column("regra_rrule", sa.String(300), nullable=False),
         sa.Column("proxima_ocorrencia", sa.Date(), nullable=True),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_recurring_user_id_app_user", ondelete="CASCADE"
+        ),
     )
     op.create_index("ix_recurring_user_id_proxima", "recurring", ["user_id", "proxima_ocorrencia"])
 
@@ -119,12 +127,31 @@ def upgrade() -> None:
         sa.Column("recorrente_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("tags", postgresql.JSONB(), nullable=False, server_default="[]"),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["account_id"], ["account.id"], ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(["category_id"], ["category.id"], ondelete="SET NULL"),
-        sa.ForeignKeyConstraint(["recorrente_id"], ["recurring.id"], ondelete="SET NULL"),
-        sa.CheckConstraint("tipo IN ('receita','despesa','transferencia')", name="tipo"),
-        sa.CheckConstraint("valor_centavos > 0", name="valor_positivo"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_transaction_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["account_id"],
+            ["account.id"],
+            name="fk_transaction_account_id_account",
+            ondelete="RESTRICT",
+        ),
+        sa.ForeignKeyConstraint(
+            ["category_id"],
+            ["category.id"],
+            name="fk_transaction_category_id_category",
+            ondelete="SET NULL",
+        ),
+        sa.ForeignKeyConstraint(
+            ["recorrente_id"],
+            ["recurring.id"],
+            name="fk_transaction_recorrente_id_recurring",
+            ondelete="SET NULL",
+        ),
+        sa.CheckConstraint(
+            "tipo IN ('receita','despesa','transferencia')", name="ck_transaction_tipo"
+        ),
+        sa.CheckConstraint("valor_centavos > 0", name="ck_transaction_valor_positivo"),
     )
     op.create_index("ix_transaction_user_id_data", "transaction", ["user_id", "data"])
     op.create_index("ix_transaction_user_id_category", "transaction", ["user_id", "category_id"])
@@ -137,9 +164,16 @@ def upgrade() -> None:
         sa.Column("mes_ano", sa.String(7), nullable=False),
         sa.Column("limite_centavos", sa.BigInteger(), nullable=False),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["category_id"], ["category.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("limite_centavos > 0", name="limite_positivo"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_budget_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["category_id"],
+            ["category.id"],
+            name="fk_budget_category_id_category",
+            ondelete="CASCADE",
+        ),
+        sa.CheckConstraint("limite_centavos > 0", name="ck_budget_limite_positivo"),
         sa.UniqueConstraint(
             "user_id", "category_id", "mes_ano", name="uq_budget_user_category_mes"
         ),

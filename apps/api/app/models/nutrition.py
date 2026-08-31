@@ -41,7 +41,7 @@ class MealSlot(Base, SyncMixin):
 class MealLog(Base, SyncMixin):
     __tablename__ = "meal_log"
     __table_args__ = (
-        CheckConstraint("aderencia IN ('dentro','parcial','fora')", name="aderencia"),
+        CheckConstraint("aderencia IN ('dentro','parcial','fora')", name="ck_meal_log_aderencia"),
         Index("ix_meal_log_user_id_data", "user_id", "data"),
     )
 
@@ -64,7 +64,7 @@ class MealLog(Base, SyncMixin):
 class WaterLog(Base, SyncMixin):
     __tablename__ = "water_log"
     __table_args__ = (
-        CheckConstraint("ml > 0 AND ml <= 5000", name="ml_valido"),
+        CheckConstraint("ml > 0 AND ml <= 5000", name="ck_water_log_ml_valido"),
         Index("ix_water_log_user_id_data", "user_id", "data"),
     )
 

@@ -72,8 +72,12 @@ def upgrade() -> None:
         sa.Column("meta_por_semana", sa.Integer(), nullable=False, server_default="7"),
         sa.Column("ativo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("meta_por_semana BETWEEN 1 AND 7", name="meta_por_semana_valida"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_habit_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.CheckConstraint(
+            "meta_por_semana BETWEEN 1 AND 7", name="ck_habit_meta_por_semana_valida"
+        ),
     )
     op.create_index("ix_habit_user_id_nome", "habit", ["user_id", "nome"])
 
@@ -86,8 +90,15 @@ def upgrade() -> None:
         sa.Column("concluido", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("valor", sa.Float(), nullable=True),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["habit_id"], ["habit.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name="fk_habit_checkin_user_id_app_user",
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["habit_id"], ["habit.id"], name="fk_habit_checkin_habit_id_habit", ondelete="CASCADE"
+        ),
         sa.UniqueConstraint("habit_id", "data", name="uq_habit_checkin_habit_data"),
     )
     op.create_index("ix_habit_checkin_user_id_data", "habit_checkin", ["user_id", "data"])
@@ -105,11 +116,15 @@ def upgrade() -> None:
         sa.Column("metrica_ref", sa.String(100), nullable=False),
         sa.Column("status", sa.String(10), nullable=False, server_default="ativa"),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("dominio IN ('treino','nutricao','financas','rotina')", name="dominio"),
-        sa.CheckConstraint("tipo IN ('numerica','binaria','habito')", name="tipo"),
-        sa.CheckConstraint("status IN ('ativa','concluida','arquivada')", name="status"),
-        sa.CheckConstraint("alvo > 0", name="alvo_positivo"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_goal_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.CheckConstraint(
+            "dominio IN ('treino','nutricao','financas','rotina')", name="ck_goal_dominio"
+        ),
+        sa.CheckConstraint("tipo IN ('numerica','binaria','habito')", name="ck_goal_tipo"),
+        sa.CheckConstraint("status IN ('ativa','concluida','arquivada')", name="ck_goal_status"),
+        sa.CheckConstraint("alvo > 0", name="ck_goal_alvo_positivo"),
     )
     op.create_index("ix_goal_user_id_status", "goal", ["user_id", "status"])
 

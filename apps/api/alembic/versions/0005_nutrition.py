@@ -72,7 +72,9 @@ def upgrade() -> None:
         sa.Column("nome", sa.String(120), nullable=False),
         sa.Column("ativo", sa.Boolean(), nullable=False, server_default=sa.true()),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_meal_plan_user_id_app_user", ondelete="CASCADE"
+        ),
     )
     op.create_index("ix_meal_plan_user_id_ativo", "meal_plan", ["user_id", "ativo"])
 
@@ -86,8 +88,15 @@ def upgrade() -> None:
         sa.Column("descricao", sa.String(240), nullable=True),
         sa.Column("ordem", sa.Integer(), nullable=False, server_default="0"),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["meal_plan_id"], ["meal_plan.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_meal_slot_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["meal_plan_id"],
+            ["meal_plan.id"],
+            name="fk_meal_slot_meal_plan_id_meal_plan",
+            ondelete="CASCADE",
+        ),
     )
     op.create_index("ix_meal_slot_user_id_plan", "meal_slot", ["user_id", "meal_plan_id"])
 
@@ -104,9 +113,15 @@ def upgrade() -> None:
         sa.Column("notas", sa.Text(), nullable=True),
         sa.Column("tags", postgresql.JSONB(), nullable=False, server_default="[]"),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["slot_id"], ["meal_slot.id"], ondelete="SET NULL"),
-        sa.CheckConstraint("aderencia IN ('dentro','parcial','fora')", name="aderencia"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_meal_log_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["slot_id"], ["meal_slot.id"], name="fk_meal_log_slot_id_meal_slot", ondelete="SET NULL"
+        ),
+        sa.CheckConstraint(
+            "aderencia IN ('dentro','parcial','fora')", name="ck_meal_log_aderencia"
+        ),
     )
     op.create_index("ix_meal_log_user_id_data", "meal_log", ["user_id", "data"])
 
@@ -118,8 +133,10 @@ def upgrade() -> None:
         sa.Column("ml", sa.Integer(), nullable=False),
         sa.Column("registrado_em", sa.String(30), nullable=False),
         *_sync_columns(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("ml > 0 AND ml <= 5000", name="ml_valido"),
+        sa.ForeignKeyConstraint(
+            ["user_id"], ["app_user.id"], name="fk_water_log_user_id_app_user", ondelete="CASCADE"
+        ),
+        sa.CheckConstraint("ml > 0 AND ml <= 5000", name="ck_water_log_ml_valido"),
     )
     op.create_index("ix_water_log_user_id_data", "water_log", ["user_id", "data"])
 

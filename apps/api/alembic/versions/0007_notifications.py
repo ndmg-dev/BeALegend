@@ -56,7 +56,12 @@ def upgrade() -> None:
         sa.Column("failure_count", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("last_success_at", sa.DateTime(timezone=True), nullable=True),
         *_timestamps(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name="fk_push_subscription_user_id_app_user",
+            ondelete="CASCADE",
+        ),
     )
     op.create_index("ix_push_subscription_user_active", "push_subscription", ["user_id", "active"])
     op.create_table(
@@ -69,8 +74,15 @@ def upgrade() -> None:
         sa.Column("resumo_dia_semana", sa.Integer(), nullable=False, server_default="6"),
         sa.Column("resumo_horario", sa.Time(), nullable=False, server_default="18:00"),
         *_timestamps(),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.CheckConstraint("resumo_dia_semana BETWEEN 0 AND 6", name="resumo_dia_valido"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name="fk_notification_preference_user_id_app_user",
+            ondelete="CASCADE",
+        ),
+        sa.CheckConstraint(
+            "resumo_dia_semana BETWEEN 0 AND 6", name="ck_notification_preference_resumo_dia_valido"
+        ),
     )
     op.create_table(
         "notification_delivery",
@@ -86,8 +98,18 @@ def upgrade() -> None:
         sa.Column(
             "criado_em", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()
         ),
-        sa.ForeignKeyConstraint(["user_id"], ["app_user.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["subscription_id"], ["push_subscription.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["user_id"],
+            ["app_user.id"],
+            name="fk_notification_delivery_user_id_app_user",
+            ondelete="CASCADE",
+        ),
+        sa.ForeignKeyConstraint(
+            ["subscription_id"],
+            ["push_subscription.id"],
+            name="fk_notification_delivery_subscription_id_push_subscription",
+            ondelete="CASCADE",
+        ),
         sa.UniqueConstraint(
             "subscription_id", "kind", "scheduled_for", name="uq_notification_delivery_once"
         ),
