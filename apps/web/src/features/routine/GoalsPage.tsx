@@ -6,6 +6,7 @@ import {
   createHabit,
   ensureRoutineDefaults,
   habits,
+  hasCompletedAnyRecord,
   metricSnapshot,
   setHabitCompleted,
 } from '@/data/db/routineRepo';
@@ -45,6 +46,9 @@ export function GoalsPage() {
     habits: await habits(), checkins: await checkins(), goals: await activeGoals(),
     snapshot: await metricSnapshot(today),
     weekly: await weeklySummary(today),
+    // "Depois do primeiro registro concluído" vale para qualquer domínio —
+    // treino, refeição, gasto ou hábito — não só check-in de hábito.
+    engaged: await hasCompletedAnyRecord(),
   }), [today]);
 
   useEffect(() => {
@@ -136,7 +140,7 @@ export function GoalsPage() {
         </div>
       </Card>
 
-      <NotificationSettings eligible={data.checkins.some((item) => item.concluido)} />
+      <NotificationSettings eligible={data.engaged} />
     </section>
   );
 }

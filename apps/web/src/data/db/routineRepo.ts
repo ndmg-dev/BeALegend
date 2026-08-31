@@ -119,6 +119,25 @@ export async function setHabitCompleted(
   });
 }
 
+/**
+ * Já existe algum registro concluído em qualquer domínio do app?
+ *
+ * É o gatilho de elegibilidade do card de notificações: a arquitetura pede
+ * que a permissão seja pedida "depois do primeiro registro concluído", sem
+ * qualificar qual — uma série de treino, uma refeição, um gasto ou um
+ * check-in de hábito contam igual. `.limit(1)` em cada tabela porque só
+ * importa a existência, nunca a contagem.
+ */
+export async function hasCompletedAnyRecord(): Promise<boolean> {
+  const [setLog, mealLog, transaction, checkin] = await Promise.all([
+    db.set_log.limit(1).toArray(),
+    db.meal_log.limit(1).toArray(),
+    db.finance_transaction.limit(1).toArray(),
+    db.habit_checkin.filter((item) => item.concluido).limit(1).toArray(),
+  ]);
+  return setLog.length > 0 || mealLog.length > 0 || transaction.length > 0 || checkin.length > 0;
+}
+
 export async function metricSnapshot(today: string): Promise<MetricSnapshot> {
   const week = weekDates(today);
   const sessions = await db.session.where('data').between(week[0] ?? today, week[6] ?? today, true, true).toArray();
