@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" role="img" aria-hidden="true">
+  <!-- Anel de orçamento zerado — âmbar de Finanças, apagado. -->
+  <circle cx="44" cy="44" r="40" fill="#33210A"/>
+  <circle cx="44" cy="44" r="20" fill="none" stroke="#714A16" stroke-width="7"/>
+  <path d="M44 24a20 20 0 0 1 14 34" fill="none" stroke="#DFA64C" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="44" cy="44" r="3" fill="#DFA64C"/>
+</svg>

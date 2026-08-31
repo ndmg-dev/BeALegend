@@ -5,6 +5,8 @@ import { criar, listar } from '@/data/db/exerciseRepo';
 import { useSession } from '@/features/auth/useSession';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { EmptyState } from '@/ui/EmptyState';
+import { Icon } from '@/ui/Icon';
 import { TextField } from '@/ui/TextField';
 
 /**
@@ -53,11 +55,9 @@ export function ExercisesPage() {
       </Card>
 
       {exercicios.length === 0 ? (
-        <Card>
-          <p className="text-body text-text-secondary">
-            Nenhum exercício ainda. O catálogo da planilha entra na fase 2.
-          </p>
-        </Card>
+        <EmptyState title="Nenhum exercício ainda" illustration="treino">
+          Adicione o primeiro acima, ou rode o seed da planilha.
+        </EmptyState>
       ) : (
         <ul aria-label="Exercícios" className="flex flex-col gap-sp-2">
           {exercicios.map((exercicio) => (
@@ -66,7 +66,7 @@ export function ExercisesPage() {
                 <span className="text-body">{exercicio.nome}</span>
                 {exercicio.row_version === 0 ? (
                   <span className="flex items-center gap-sp-1 text-caption text-text-muted">
-                    <span aria-hidden="true">↑</span> não enviado
+                    <Icon name="cloud-pending" size={16} /> não enviado
                   </span>
                 ) : null}
               </Card>

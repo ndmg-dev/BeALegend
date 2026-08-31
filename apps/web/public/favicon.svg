@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="BeALegend">
+  <!-- Três barras que sobem, um ponto que fecha — progresso acumulado, não
+       músculo. Raio do tile = 25% do lado. Ver docs/brand.md. -->
+  <rect width="96" height="96" rx="24" fill="#4A56C4"/>
+  <rect x="22" y="48" width="12" height="24" rx="4" fill="#EEF0FB"/>
+  <rect x="42" y="36" width="12" height="36" rx="4" fill="#EEF0FB"/>
+  <rect x="62" y="24" width="12" height="48" rx="4" fill="#FFFFFF"/>
+  <circle cx="68" cy="13" r="6" fill="#DFA64C"/>
+</svg>

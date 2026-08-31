@@ -21,7 +21,7 @@ test('rota protegida redireciona para o login', async ({ page }) => {
 test('cria conta, entra e a sessão sobrevive ao reload', async ({ page }) => {
   await page.goto('/criar-conta');
   await page.getByLabel('E-mail').fill(novoEmail());
-  await page.getByLabel('Senha').fill(SENHA);
+  await page.getByLabel('Senha', { exact: true }).fill(SENHA);
   await page.getByRole('button', { name: 'Criar conta' }).click();
 
   await expect(page).toHaveURL(/\/hoje/);
@@ -38,7 +38,7 @@ test('cria conta, entra e a sessão sobrevive ao reload', async ({ page }) => {
 test('credenciais inválidas mostram o erro da API, não um erro de rede', async ({ page }) => {
   await page.goto('/entrar');
   await page.getByLabel('E-mail').fill(novoEmail());
-  await page.getByLabel('Senha').fill('senha-errada-mesmo');
+  await page.getByLabel('Senha', { exact: true }).fill('senha-errada-mesmo');
   await page.getByRole('button', { name: 'Entrar' }).click();
 
   // Texto exato: garante que a mensagem veio do backend (RFC 7807) e não do
@@ -49,7 +49,7 @@ test('credenciais inválidas mostram o erro da API, não um erro de rede', async
 test('navegação entre os cinco destinos funciona depois do login', async ({ page }) => {
   await page.goto('/criar-conta');
   await page.getByLabel('E-mail').fill(novoEmail());
-  await page.getByLabel('Senha').fill(SENHA);
+  await page.getByLabel('Senha', { exact: true }).fill(SENHA);
   await page.getByRole('button', { name: 'Criar conta' }).click();
   await expect(page).toHaveURL(/\/hoje/);
 

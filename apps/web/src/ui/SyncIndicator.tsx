@@ -1,5 +1,6 @@
 import { useSyncStatus } from '@/features/sync/useSyncStatus';
 import { cn } from './cn';
+import { Icon } from './Icon';
 
 /**
  * Estado da fila de escrita.
@@ -21,12 +22,9 @@ export function SyncIndicator({ className }: { className?: string }) {
     <div
       role="status"
       aria-live="polite"
-      className={cn(
-        'flex items-center gap-sp-2 text-caption text-text-muted',
-        className,
-      )}
+      className={cn('flex items-center gap-sp-2 text-caption text-text-muted', className)}
     >
-      <span aria-hidden="true">{emAndamento ? '↻' : '↑'}</span>
+      <Icon name={emAndamento ? 'sync' : 'cloud-pending'} size={16} />
       {texto}
     </div>
   );

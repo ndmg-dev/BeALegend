@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { margin:0; background:#0b0d11; font-family:Inter,-apple-system,"Segoe UI",Helvetica,sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:#8892e2; text-decoration:none; }
+  a:hover { color:#b0b8ee; }
+  .ic { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; }
+</style>
+</helmet>
+
+<div style="background:var(--bg);color:var(--text);min-height:100vh;font-family:Inter,sans-serif" data-theme="dark">
+
+  <header style="max-width:1100px;margin:0 auto;padding:48px 40px 0">
+    <div style="display:flex;align-items:center;gap:14px">
+      <img src="assets/logomark.svg" alt="" width="44" height="44" style="border-radius:11px" />
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted)">Marca &amp; ícones</div>
+        <div style="font-size:22px;font-weight:600;letter-spacing:-.01em">BeALegend</div>
+      </div>
+    </div>
+    <p style="margin:20px 0 0;max-width:62ch;font-size:15px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">Marca, favicon, set de ícones e placeholders de imagem para vestir a interface. Tudo vetorial, monocromático em <code>currentColor</code> — herda os tokens de cor dos dois temas. Volta para o <a href="Design System.dc.html">design system</a> e os <a href="Mockups.dc.html">mockups</a>.</p>
+  </header>
+
+  <main style="max-width:1100px;margin:0 auto;padding:48px 40px 96px;display:flex;flex-direction:column;gap:64px">
+
+    <!-- ===== MARCA ===== -->
+    <section>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">01 — Marca</div>
+      <h2 style="margin:0 0 8px;font-size:28px;font-weight:600;letter-spacing:-.02em">Três barras que sobem, um ponto que fecha</h2>
+      <p style="margin:0 0 24px;max-width:62ch;font-size:15px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">Progresso acumulado, não músculo. As barras usam o índigo de Treino; o ponto âmbar é o marco alcançado — o único acento quente da marca.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px">
+          <img src="assets/logomark.svg" alt="Logomark BeALegend" width="96" height="96" style="border-radius:24px" />
+          <div style="text-align:center"><div style="font-size:13px;font-weight:600">Logomark</div><div style="font-size:12px;color:var(--text-muted)">app icon, avatar, splash</div></div>
+        </div>
+        <div style="grid-column:span 2;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:center;gap:20px">
+          <img src="assets/logo-lockup.svg" alt="BeALegend" height="44" style="height:44px;width:auto;align-self:flex-start" />
+          <div style="padding:20px;border-radius:12px;background:#f4f5f8;display:flex"><img src="assets/logo-lockup-light.svg" alt="BeALegend" height="44" style="height:44px;width:auto" /></div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Lockup horizontal. Altura mínima 24px; margem de respiro igual à altura do símbolo ÷ 2. Nunca recolorir o texto além dos dois pares aprovados.</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Favicon &amp; ícones do PWA</div>
+          <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap">
+            <div style="text-align:center"><img src="assets/favicon-32.png" width="32" height="32" alt="" style="border-radius:8px;display:block" /><div style="margin-top:6px;font-size:11px;color:var(--text-muted)">32</div></div>
+            <div style="text-align:center"><img src="assets/favicon-64.png" width="48" height="48" alt="" style="border-radius:12px;display:block" /><div style="margin-top:6px;font-size:11px;color:var(--text-muted)">64</div></div>
+            <div style="text-align:center"><img src="assets/apple-touch-icon.png" width="64" height="64" alt="" style="border-radius:15px;display:block" /><div style="margin-top:6px;font-size:11px;color:var(--text-muted)">180 · iOS</div></div>
+            <div style="text-align:center"><img src="assets/icon-512-maskable.png" width="64" height="64" alt="" style="border-radius:999px;display:block" /><div style="margin-top:6px;font-size:11px;color:var(--text-muted)">maskable</div></div>
+          </div>
+          <pre style="margin:16px 0 0;padding:12px;border-radius:8px;background:var(--surface-sunken);font-size:11px;line-height:1.6;color:var(--text-secondary);overflow:auto">&lt;link rel="icon" href="/favicon.svg" type="image/svg+xml"&gt;
+&lt;link rel="icon" href="/assets/favicon-32.png" sizes="32x32"&gt;
+&lt;link rel="apple-touch-icon" href="/assets/apple-touch-icon.png"&gt;
+&lt;link rel="manifest" href="/site.webmanifest"&gt;
+&lt;meta name="theme-color" content="#0E1116"&gt;</pre>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Cores da marca</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#4A56C4"></span><code>#4A56C4</code><span style="margin-left:auto;color:var(--text-muted)">tr-500 · fundo</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#FFFFFF"></span><code>#FFFFFF</code><span style="margin-left:auto;color:var(--text-muted)">barra maior</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#EEF0FB"></span><code>#EEF0FB</code><span style="margin-left:auto;color:var(--text-muted)">barras menores</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:28px;height:28px;border-radius:6px;background:#DFA64C"></span><code>#DFA64C</code><span style="margin-left:auto;color:var(--text-muted)">fi-300 · marco</span></div>
+          </div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border-subtle);font-size:12px;line-height:1.5;color:var(--text-muted)">Raio do tile = 25% do lado. Splash e <code>theme-color</code> em <code>#0E1116</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ÍCONES ===== -->
+    <section>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">02 — Ícones</div>
+      <h2 style="margin:0 0 8px;font-size:28px;font-weight:600;letter-spacing:-.02em">Um traço, 24px, currentColor</h2>
+      <p style="margin:0 0 24px;max-width:62ch;font-size:15px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">Grade de 24 com traço de 1,75px e pontas arredondadas. Sempre em <code>currentColor</code>, para herdar a cor do domínio ou do estado. Ícone nunca aparece sozinho como significado — acompanha rótulo ou valor.</p>
+
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px 24px 24px">
+            <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:18px"><div style="font-size:15px;font-weight:600">{{ g.title }}</div><div style="font-size:12px;color:var(--text-muted)">{{ g.note }}</div></div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px">
+              <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="8">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 6px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border-subtle);color:{{ i.color }}">
+                  <svg class="ic" aria-hidden="true"><use href="{{ i.href }}"></use></svg>
+                  <div style="font-size:10px;color:var(--text-muted);text-align:center;word-break:break-all">{{ i.id }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Tamanhos em uso</div>
+          <div style="display:flex;align-items:center;gap:22px;padding:16px;border-radius:10px;background:var(--surface-sunken)">
+            <div style="text-align:center;color:var(--text-secondary)"><svg style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><use href="assets/icons.svg#timer"></use></svg><div style="margin-top:6px;font-size:10px;color:var(--text-muted)">16 · inline</div></div>
+            <div style="text-align:center;color:var(--text-secondary)"><svg class="ic"><use href="assets/icons.svg#timer"></use></svg><div style="margin-top:6px;font-size:10px;color:var(--text-muted)">24 · padrão</div></div>
+            <div style="text-align:center;color:var(--text-secondary)"><svg style="width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><use href="assets/icons.svg#timer"></use></svg><div style="margin-top:6px;font-size:10px;color:var(--text-muted)">28 · tab bar</div></div>
+            <div style="text-align:center;color:var(--text-secondary)"><svg style="width:40px;height:40px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round"><use href="assets/icons.svg#timer"></use></svg><div style="margin-top:6px;font-size:10px;color:var(--text-muted)">40 · empty</div></div>
+          </div>
+          <div style="margin-top:14px;font-size:12px;line-height:1.5;color:var(--text-muted)">Traço afina conforme o ícone cresce, para manter o peso ótico. O alvo de toque continua 48px, independente do tamanho do glifo.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:14px">Como usar</div>
+          <pre style="margin:0;padding:12px;border-radius:8px;background:var(--surface-sunken);font-size:11px;line-height:1.7;color:var(--text-secondary);overflow:auto">.ic { width:24px; height:24px; fill:none;
+      stroke:currentColor; stroke-width:1.75;
+      stroke-linecap:round; stroke-linejoin:round }
+
+&lt;svg class="ic" aria-hidden="true"&gt;
+  &lt;use href="/assets/icons.svg#tab-treino"&gt;&lt;/use&gt;
+&lt;/svg&gt;</pre>
+          <div style="margin-top:14px;font-size:12px;line-height:1.5;color:var(--text-muted)">Um único arquivo de sprite, cacheado uma vez. Ícone decorativo leva <code>aria-hidden</code>; ícone que é o único conteúdo de um botão leva <code>aria-label</code>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== IMAGENS ===== -->
+    <section>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">03 — Imagens e vazios</div>
+      <h2 style="margin:0 0 8px;font-size:28px;font-weight:600;letter-spacing:-.02em">Geometria, nunca foto de academia</h2>
+      <p style="margin:0 0 24px;max-width:62ch;font-size:15px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">Estados vazios usam formas dos próprios componentes — barras, anéis, marcadores. Slots de foto ficam listrados e rotulados até receberem conteúdo real do usuário.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <img src="assets/empty-treino.svg" width="88" height="88" alt="" />
+          <div style="margin-top:12px;font-size:15px;font-weight:600">Nenhum treino hoje</div>
+          <div style="margin-top:4px;font-size:13px;color:var(--text-muted);line-height:1.45">Dia de descanso no plano.</div>
+          <button style="margin-top:14px;height:44px;padding:0 18px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font:600 14px Inter,sans-serif;cursor:pointer">Treinar mesmo assim</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <img src="assets/empty-gastos.svg" width="88" height="88" alt="" />
+          <div style="margin-top:12px;font-size:15px;font-weight:600">Nenhum gasto hoje</div>
+          <div style="margin-top:4px;font-size:13px;color:var(--text-muted);line-height:1.45">Lance o primeiro para acompanhar o orçamento.</div>
+          <button style="margin-top:14px;height:44px;padding:0 18px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--text);font:600 14px Inter,sans-serif;cursor:pointer">Lançar gasto</button>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center">
+          <img src="assets/empty-vazio.svg" width="88" height="88" alt="" />
+          <div style="margin-top:12px;font-size:15px;font-weight:600">Sem histórico ainda</div>
+          <div style="margin-top:4px;font-size:13px;color:var(--text-muted);line-height:1.45">Genérico — use quando não houver ação óbvia.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px">Slot de foto do exercício · 4:3</div>
+          <img src="assets/placeholder-exercicio.svg" alt="" style="width:100%;height:auto;display:block;border-radius:12px" />
+        </div>
+        <div style="grid-column:span 2;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px">Slot de foto da refeição · 16:9</div>
+          <img src="assets/placeholder-refeicao.svg" alt="" style="width:100%;height:auto;display:block;border-radius:12px" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== LOGIN ===== -->
+    <section>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">04 — Entrar</div>
+      <h2 style="margin:0 0 8px;font-size:28px;font-weight:600;letter-spacing:-.02em">A primeira tela, vestida</h2>
+      <p style="margin:0 0 24px;max-width:62ch;font-size:15px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">Marca no topo, campos com ícone-âncora, botão de 56px e os quatro domínios anunciados em uma linha — a promessa do app antes do primeiro toque.</p>
+
+      <div style="display:flex;flex-wrap:wrap;gap:24px">
+        <div data-theme="dark" data-screen-label="Entrar escuro" style="flex:1;min-width:320px;max-width:440px;background:var(--bg);border:1px solid var(--border);border-radius:24px;padding:40px 32px;display:flex;flex-direction:column;align-items:center">
+          <img src="assets/logomark.svg" width="56" height="56" alt="" style="border-radius:14px" />
+          <div style="margin-top:18px;font-size:28px;font-weight:700;letter-spacing:-.02em">Entrar</div>
+          <div style="margin-top:6px;font-size:14px;color:var(--text-secondary);text-align:center">Treino, refeições, gastos e hábitos — num lugar só.</div>
+
+          <div style="width:100%;margin-top:28px;display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:600">E-mail</span>
+              <span style="display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none"><use href="assets/icons.svg#mail"></use></svg>
+                <span style="font-size:15px;color:var(--text-muted)">voce@email.com</span>
+              </span>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Senha</span>
+              <span style="display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border:1px solid var(--focus-ring);border-radius:10px;background:var(--surface);box-shadow:0 0 0 2px var(--tr-800)">
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none"><use href="assets/icons.svg#lock"></use></svg>
+                <span style="flex:1;font-size:15px;letter-spacing:.18em">••••••••</span>
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none" aria-label="Mostrar senha"><use href="assets/icons.svg#eye"></use></svg>
+              </span>
+            </label>
+            <button style="height:56px;margin-top:6px;border:none;border-radius:10px;background:var(--tr-500);color:#fff;font:700 17px Inter,sans-serif;cursor:pointer">Entrar</button>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><a href="#">Criar uma conta</a><a href="#" style="color:var(--text-muted)">Esqueci a senha</a></div>
+          </div>
+
+          <div style="width:100%;margin-top:32px;padding-top:20px;border-top:1px solid var(--border-subtle);display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--training)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-treino"></use></svg><span style="font-size:11px;color:var(--text-muted)">Treino</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--nutrition)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-comer"></use></svg><span style="font-size:11px;color:var(--text-muted)">Comer</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--finance)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-grana"></use></svg><span style="font-size:11px;color:var(--text-muted)">Grana</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--routine)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-metas"></use></svg><span style="font-size:11px;color:var(--text-muted)">Metas</span></div>
+          </div>
+        </div>
+
+        <div data-theme="light" data-screen-label="Entrar claro" style="flex:1;min-width:320px;max-width:440px;background:var(--bg);border:1px solid #2b313c;border-radius:24px;padding:40px 32px;display:flex;flex-direction:column;align-items:center;color:var(--text)">
+          <img src="assets/logomark.svg" width="56" height="56" alt="" style="border-radius:14px" />
+          <div style="margin-top:18px;font-size:28px;font-weight:700;letter-spacing:-.02em">Entrar</div>
+          <div style="margin-top:6px;font-size:14px;color:var(--text-secondary);text-align:center">Treino, refeições, gastos e hábitos — num lugar só.</div>
+          <div style="width:100%;margin-top:28px;display:flex;flex-direction:column;gap:14px">
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:600">E-mail</span>
+              <span style="display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none"><use href="assets/icons.svg#mail"></use></svg>
+                <span style="font-size:15px;color:var(--text)">ana@email.com</span>
+              </span>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px">
+              <span style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);font-weight:600">Senha</span>
+              <span style="display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)">
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none"><use href="assets/icons.svg#lock"></use></svg>
+                <span style="flex:1;font-size:15px;letter-spacing:.18em">••••••••</span>
+                <svg class="ic" style="width:20px;height:20px;color:var(--text-muted);flex:none" aria-label="Mostrar senha"><use href="assets/icons.svg#eye-off"></use></svg>
+              </span>
+            </label>
+            <button style="height:56px;margin-top:6px;border:none;border-radius:10px;background:var(--tr-600);color:#fff;font:700 17px Inter,sans-serif;cursor:pointer">Entrar</button>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><a href="#" style="color:var(--tr-600)">Criar uma conta</a><a href="#" style="color:var(--text-muted)">Esqueci a senha</a></div>
+          </div>
+          <div style="width:100%;margin-top:32px;padding-top:20px;border-top:1px solid var(--border-subtle);display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--training)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-treino"></use></svg><span style="font-size:11px;color:var(--text-muted)">Treino</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--nutrition)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-comer"></use></svg><span style="font-size:11px;color:var(--text-muted)">Comer</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--finance)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-grana"></use></svg><span style="font-size:11px;color:var(--text-muted)">Grana</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--routine)"><svg class="ic" style="width:22px;height:22px"><use href="assets/icons.svg#tab-metas"></use></svg><span style="font-size:11px;color:var(--text-muted)">Metas</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TAB BAR ===== -->
+    <section>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">05 — Tab bar com os ícones aplicados</div>
+      <div style="max-width:420px;position:relative;padding:10px 8px 26px;border-radius:18px;background:var(--surface-raised);border:1px solid var(--border)">
+        <div style="position:absolute;right:16px;top:-28px;width:56px;height:56px;border-radius:999px;background:var(--tr-500);color:#fff;display:grid;place-items:center;box-shadow:var(--shadow-md)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#plus"></use></svg></div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr)">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;color:var(--tr-300)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#tab-hoje"></use></svg><span style="font-size:10px;font-weight:600">Hoje</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;color:var(--text-muted)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#tab-treino"></use></svg><span style="font-size:10px">Treino</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;color:var(--text-muted)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#tab-comer"></use></svg><span style="font-size:10px">Comer</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;color:var(--text-muted)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#tab-grana"></use></svg><span style="font-size:10px">Grana</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;color:var(--text-muted)"><svg class="ic" style="width:26px;height:26px"><use href="assets/icons.svg#tab-metas"></use></svg><span style="font-size:10px">Metas</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;max-width:62ch;font-size:12px;line-height:1.55;color:var(--text-muted)">Aba ativa: ícone + rótulo em <code>tr-300</code> (escuro) / <code>tr-600</code> (claro) e rótulo em peso 600 — cor nunca sozinha. Badge de pendência entra no canto superior direito do ícone, 8px, sem número quando &gt; 9.</div>
+    </section>
+
+    <footer style="padding-top:24px;border-top:1px solid var(--border-subtle);font-size:12px;color:var(--text-muted)">
+      Arquivos: <code>favicon.svg</code> · <code>site.webmanifest</code> · <code>assets/icons.svg</code> · <code>assets/logo*.svg</code> · <code>assets/empty-*.svg</code> · <code>assets/placeholder-*.svg</code> · PNGs 32/64/180/192/512
+    </footer>
+
+  </main>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const g = (title, note, items) => ({
+      title, note,
+      items: items.map(it => {
+        const [id, color] = Array.isArray(it) ? it : [it, 'var(--text-secondary)'];
+        return { id, color, href: 'assets/icons.svg#' + id };
+      })
+    });
+    return {
+      groups: [
+        g('Navegação', 'tab bar — cada aba herda a cor do seu domínio quando ativa', [
+          ['tab-hoje', 'var(--text)'], ['tab-treino', 'var(--training)'], ['tab-comer', 'var(--nutrition)'],
+          ['tab-grana', 'var(--finance)'], ['tab-metas', 'var(--routine)']
+        ]),
+        g('Ações', 'controles, listas e barras de ferramentas', [
+          'plus', 'minus', 'check', 'check-circle', 'close', 'chevron-left', 'chevron-right', 'chevron-down',
+          'more', 'edit', 'trash', 'search', 'filter', 'undo'
+        ]),
+        g('Domínio', 'usados dentro de cards e telas de registro', [
+          ['timer', 'var(--training)'], ['streak', 'var(--routine)'], ['trend-up', 'var(--success)'],
+          ['trend-down', 'var(--danger)'], ['budget', 'var(--finance)'], ['scale', 'var(--training)'],
+          'chart', 'note', 'calendar', 'user', 'settings'
+        ]),
+        g('Estado', 'sempre acompanhados de texto — cor e ícone nunca bastam sozinhos', [
+          ['offline', 'var(--info)'], ['sync', 'var(--success)'], ['cloud-pending', 'var(--warning)'],
+          ['alert', 'var(--danger)'], ['info', 'var(--info)']
+        ])
+      ]
+    };
+  }
+}
+
+</script>
+</body>
+</html>

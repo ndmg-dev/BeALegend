@@ -54,7 +54,7 @@ function rodarSeed(email: string): void {
 async function criarConta(page: Page, email: string): Promise<void> {
   await page.goto('/criar-conta');
   await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha').fill(SENHA);
+  await page.getByLabel('Senha', { exact: true }).fill(SENHA);
   await page.getByRole('button', { name: 'Criar conta' }).click();
   await expect(page).toHaveURL(/\/hoje/);
 }

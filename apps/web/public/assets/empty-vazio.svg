@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" role="img" aria-hidden="true">
+  <!-- Genérico — sem domínio, sem ação óbvia. Marcador tracejado neutro. -->
+  <circle cx="44" cy="44" r="40" fill="#232833"/>
+  <circle cx="44" cy="44" r="22" fill="none" stroke="#4E5666" stroke-width="3" stroke-dasharray="4 6"/>
+  <circle cx="44" cy="44" r="4" fill="#6B7383"/>
+</svg>

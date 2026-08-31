@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+  <!-- Slot de foto da refeição, 16:9. Mesmo tratamento do slot de exercício. -->
+  <defs>
+    <pattern id="stripes-16-9" width="16" height="16" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect width="16" height="16" fill="#161A21"/>
+      <rect width="8" height="16" fill="#1D222B"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="225" rx="12" fill="url(#stripes-16-9)"/>
+  <rect width="400" height="225" rx="12" fill="none" stroke="#2A303B"/>
+  <g transform="translate(176,86)" stroke="#4E5666" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <rect x="0" y="10" width="48" height="36" rx="6"/>
+    <path d="M14 10l4-8h12l4 8"/>
+    <circle cx="24" cy="28" r="10"/>
+  </g>
+</svg>

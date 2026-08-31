@@ -9,6 +9,7 @@ import { useSession } from '@/features/auth/useSession';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { cn } from '@/ui/cn';
+import { EmptyState } from '@/ui/EmptyState';
 
 const NOME_DIA: Record<PlanDay['dia_semana'], string> = {
   segunda: 'Segunda',
@@ -68,11 +69,9 @@ export function PlanoSemanaPage() {
           Carregando…
         </div>
       ) : dias === null ? (
-        <Card>
-          <p className="text-body text-text-secondary">
-            Nenhum plano ativo ainda. Rode o seed da planilha para começar.
-          </p>
-        </Card>
+        <EmptyState title="Nenhum plano ativo" illustration="treino">
+          Rode o seed da planilha para começar.
+        </EmptyState>
       ) : (
         <div className="flex flex-col gap-sp-3">
           {dias.map((dia) => (

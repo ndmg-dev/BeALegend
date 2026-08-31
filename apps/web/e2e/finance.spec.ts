@@ -6,7 +6,7 @@ test('registra gasto e acompanha orçamento mesmo após reload', async ({ page }
   const email = `finance-${Date.now()}-${Math.random().toString(16).slice(2)}@exemplo.com`;
   await page.goto('/criar-conta');
   await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha').fill(PASSWORD);
+  await page.getByLabel('Senha', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Criar conta' }).click();
   await expect(page).toHaveURL(/\/hoje/);
 

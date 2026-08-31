@@ -99,7 +99,10 @@ export function FinancePage() {
       <Card>
         <h2 className="mb-sp-3 text-heading">Lançamentos do mês</h2>
         {data.transactions.length === 0 ? (
-          <p className="text-body text-text-muted">Nenhum lançamento ainda.</p>
+          <div className="flex flex-col items-center gap-sp-2 py-sp-4 text-center">
+            <img src="/assets/empty-gastos.svg" alt="" width={56} height={56} />
+            <p className="text-body text-text-muted">Nenhum lançamento ainda.</p>
+          </div>
         ) : (
           <div className="divide-y divide-border-subtle">
             {data.transactions.slice(0, 30).map((item) => (
