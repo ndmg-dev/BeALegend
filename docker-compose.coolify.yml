@@ -15,7 +15,9 @@
 
 services:
   db:
-    image: postgres:16-alpine
+    build:
+      context: .
+      dockerfile: infra/db.Dockerfile
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-bealegend}
@@ -25,7 +27,6 @@ services:
       postgres -c bealegend.app_password=${APP_DB_PASSWORD:?set APP_DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./infra/db-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bealegend} -d ${POSTGRES_DB:-bealegend}"]
       interval: 10s
@@ -117,13 +118,14 @@ services:
     restart: unless-stopped
 
   caddy:
-    image: caddy:2-alpine
+    build:
+      context: .
+      dockerfile: infra/caddy.Dockerfile
     restart: unless-stopped
     depends_on: [api, web]
     expose:
       - "80"
     volumes:
-      - ./infra/Caddyfile.coolify:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 
