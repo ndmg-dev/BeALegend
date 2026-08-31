@@ -83,7 +83,7 @@ async def _clean_db():
             text(
                 'TRUNCATE notification_delivery, push_subscription, notification_preference, '
                 'idempotency_record, habit_checkin, habit, goal, '
-                'water_log, meal_log, meal_slot, meal_plan, '
+                'nutrition_insight, water_log, meal_log, meal_slot, meal_plan, '
                 'budget, "transaction", recurring, category, account, '
                 "set_log, cardio_log, body_metric, session, "
                 "plan_item, plan_day, training_plan, cardio_protocol, exercise, "

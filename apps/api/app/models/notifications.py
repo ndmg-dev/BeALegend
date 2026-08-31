@@ -48,6 +48,9 @@ class NotificationPreference(Base, TimestampMixin):
     resumo_semanal_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     resumo_dia_semana: Mapped[int] = mapped_column(Integer, nullable=False, default=6)
     resumo_horario: Mapped[time] = mapped_column(Time(), nullable=False, default=time(18, 0))
+    # Opt-in explícito: manda um resumo dos registros alimentares para um
+    # provider de IA externo. Desligado por padrão — é dado sensível.
+    insights_ia_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class NotificationDelivery(Base):

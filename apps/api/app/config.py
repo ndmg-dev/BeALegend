@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     # enviado de volta, e a sessão morreria a cada reload.
     refresh_cookie_path: str = "/api/auth"
 
+    # Insights de nutrição por IA. Feature opcional: sem chave/flag, os
+    # endpoints respondem 204 e o worker não gera nada.
+    nutrition_insights_enabled: bool = False
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_timeout_seconds: int = 20
+
     vapid_public_key: str = ""
     vapid_private_key: str = ""
     vapid_subject: str = "mailto:admin@example.com"

@@ -24,6 +24,7 @@ class NotificationPreferenceOut(BaseModel):
     resumo_semanal_enabled: bool = True
     resumo_dia_semana: int = 6
     resumo_horario: time = time(18, 0)
+    insights_ia_enabled: bool = False
 
 
 class NotificationPreferencePatch(BaseModel):
@@ -33,6 +34,7 @@ class NotificationPreferencePatch(BaseModel):
     resumo_semanal_enabled: bool | None = None
     resumo_dia_semana: int | None = Field(default=None, ge=0, le=6)
     resumo_horario: time | None = None
+    insights_ia_enabled: bool | None = None
 
 
 class NotificationConfigOut(BaseModel):

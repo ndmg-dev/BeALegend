@@ -32,6 +32,7 @@ def _preference_out(row: NotificationPreference | None) -> NotificationPreferenc
         resumo_semanal_enabled=row.resumo_semanal_enabled,
         resumo_dia_semana=row.resumo_dia_semana,
         resumo_horario=row.resumo_horario,
+        insights_ia_enabled=row.insights_ia_enabled,
     )
 
 

@@ -1,7 +1,19 @@
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, CheckConstraint, Date, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -75,3 +87,33 @@ class WaterLog(Base, SyncMixin):
     data: Mapped[date] = mapped_column(Date, nullable=False)
     ml: Mapped[int] = mapped_column(Integer, nullable=False)
     registrado_em: Mapped[str] = mapped_column(String(30), nullable=False)
+
+
+class NutritionInsight(Base, SyncMixin):
+    """Observação gerada por IA sobre a alimentação do usuário.
+
+    Escrita só pelo servidor (endpoint dedicado ou worker), nunca pelo
+    ``/sync/batch``. O ``unique (user_id, tipo, periodo_ref)`` garante um
+    insight por período — reprocessar faz ``ON CONFLICT DO UPDATE``.
+    """
+
+    __tablename__ = "nutrition_insight"
+    __table_args__ = (
+        CheckConstraint("tipo IN ('semanal','diario')", name="ck_nutrition_insight_tipo"),
+        UniqueConstraint(
+            "user_id", "tipo", "periodo_ref", name="uq_nutrition_insight_periodo"
+        ),
+        Index("ix_nutrition_insight_user_id_tipo", "user_id", "tipo"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False
+    )
+    tipo: Mapped[str] = mapped_column(String(8), nullable=False)
+    periodo_ref: Mapped[date] = mapped_column(Date, nullable=False)
+    texto: Mapped[str] = mapped_column(Text, nullable=False)
+    modelo: Mapped[str] = mapped_column(String(80), nullable=False)
+    gerado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )

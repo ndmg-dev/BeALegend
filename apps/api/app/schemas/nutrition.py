@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -90,3 +90,11 @@ class NutritionDayOut(BaseModel):
     slots: list[MealSlotOut]
     refeicoes: list[MealLogOut]
     agua_ml: int
+
+
+class NutritionInsightOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    tipo: str
+    periodo_ref: date
+    texto: str
+    gerado_em: datetime

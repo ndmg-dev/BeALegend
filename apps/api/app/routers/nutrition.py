@@ -1,11 +1,23 @@
-from datetime import date
+from datetime import date, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query, Response
 from sqlalchemy import func, select
 
 from app.deps import CurrentUser, DbSession
 from app.models import MealLog, MealPlan, MealSlot, WaterLog
-from app.schemas.nutrition import MealLogOut, MealSlotOut, NutritionDayOut
+from app.routers.training import hoje_no_fuso
+from app.schemas.nutrition import (
+    MealLogOut,
+    MealSlotOut,
+    NutritionDayOut,
+    NutritionInsightOut,
+)
+from app.services.insights import (
+    build_provider,
+    gerar_insight_diario,
+    gerar_insight_semanal,
+)
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
@@ -42,3 +54,37 @@ async def nutrition_day(day: date, user: CurrentUser, session: DbSession) -> Nut
         refeicoes=[MealLogOut.model_validate(meal) for meal in meals],
         agua_ml=int(water or 0),
     )
+
+
+def _semana_inicio(dia: date) -> date:
+    return dia - timedelta(days=dia.weekday())
+
+
+#: Quando não há insight: feature desligada, opt-in off, sem dados ou erro do provider.
+_SEM_INSIGHT = {204: {"description": "Sem insight disponível"}}
+
+
+@router.get("/insight/today", response_model=NutritionInsightOut, responses=_SEM_INSIGHT)
+async def nutrition_insight_today(
+    user: CurrentUser, session: DbSession
+) -> NutritionInsightOut | Response:
+    dia = hoje_no_fuso(user.timezone)
+    insight = await gerar_insight_diario(session, user.id, dia, build_provider())
+    if insight is None:
+        return Response(status_code=204)
+    return NutritionInsightOut.model_validate(insight)
+
+
+@router.get("/insight/weekly", response_model=NutritionInsightOut, responses=_SEM_INSIGHT)
+async def nutrition_insight_weekly(
+    user: CurrentUser,
+    session: DbSession,
+    semana: Annotated[
+        date | None, Query(description="Qualquer dia da semana desejada")
+    ] = None,
+) -> NutritionInsightOut | Response:
+    inicio = _semana_inicio(semana or hoje_no_fuso(user.timezone))
+    insight = await gerar_insight_semanal(session, user.id, inicio, build_provider())
+    if insight is None:
+        return Response(status_code=204)
+    return NutritionInsightOut.model_validate(insight)

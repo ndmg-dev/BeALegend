@@ -3,7 +3,7 @@ from app.models.exercise import Exercise
 from app.models.finance import Account, Budget, Category, FinanceTransaction, Recurring
 from app.models.idempotency import IdempotencyRecord
 from app.models.notifications import NotificationDelivery, NotificationPreference, PushSubscription
-from app.models.nutrition import MealLog, MealPlan, MealSlot, WaterLog
+from app.models.nutrition import MealLog, MealPlan, MealSlot, NutritionInsight, WaterLog
 from app.models.routine import Goal, Habit, HabitCheckin
 from app.models.training import (
     BodyMetric,
@@ -33,6 +33,7 @@ __all__ = [
     "MealLog",
     "MealPlan",
     "MealSlot",
+    "NutritionInsight",
     "NotificationDelivery",
     "NotificationPreference",
     "PlanDay",
