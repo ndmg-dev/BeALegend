@@ -64,6 +64,37 @@ async def test_habitos_metas_e_dashboard_sao_calculados(client):
     assert dashboard.json()["habitos_total"] == 1
 
 
+async def test_habito_pode_ser_editado_e_excluido(client):
+    _, token = await register(client)
+    habit_id = str(uuid.uuid4())
+    await push(
+        client,
+        token,
+        op("habit", "create", habit_id, {
+            "nome": "Meditar", "frequencia_rrule": "FREQ=DAILY", "meta_por_semana": 7,
+        }),
+    )
+
+    editado = await push(
+        client,
+        token,
+        op("habit", "update", habit_id, {
+            "nome": "Meditar 10 min", "frequencia_rrule": "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR",
+            "meta_por_semana": 5,
+        }),
+    )
+    assert editado[0]["status"] == "applied"
+    assert editado[0]["entity"]["nome"] == "Meditar 10 min"
+    assert editado[0]["entity"]["meta_por_semana"] == 5
+
+    apagado = await push(client, token, op("habit", "delete", habit_id, {}))
+    assert apagado[0]["status"] == "applied"
+
+    hoje = await client.get("/routine/habits/today", headers=auth(token))
+    assert hoje.status_code == 200
+    assert all(h["id"] != habit_id for h in hoje.json())
+
+
 async def test_checkin_nao_aceita_habito_de_outro_usuario(client):
     _, token_a = await register(client)
     _, token_b = await register(client)

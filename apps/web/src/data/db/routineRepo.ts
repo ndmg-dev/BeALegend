@@ -45,6 +45,29 @@ export async function createHabit(
   return line;
 }
 
+export type PatchHabito = Partial<
+  Pick<Habit, 'nome' | 'icone' | 'frequencia_rrule' | 'meta_por_semana'>
+>;
+
+export async function updateHabit(id: string, patch: PatchHabito): Promise<void> {
+  await db.transaction('rw', db.habit, db.outbox, async () => {
+    const atual = await db.habit.get(id);
+    if (!atual) throw new Error(`Hábito ${id} não existe localmente.`);
+    await db.habit.update(id, { ...patch, updated_at: new Date().toISOString() });
+    // Só os campos tocados vão para a fila (LWW por campo).
+    await enfileirar({
+      entidade: 'habit', operacao: 'update', registroId: id, payload: { ...patch },
+    });
+  });
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  await db.transaction('rw', db.habit, db.outbox, async () => {
+    await db.habit.delete(id);
+    await enfileirar({ entidade: 'habit', operacao: 'delete', registroId: id });
+  });
+}
+
 export async function createGoal(
   input: Pick<Goal, 'titulo' | 'dominio' | 'tipo' | 'alvo' | 'unidade' | 'prazo' | 'metrica_ref'>,
   userId: string,

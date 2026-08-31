@@ -2,16 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { CATALOG } from '@/domain/achievements/catalog';
-import { db } from '@/data/db/schema';
+import { db, type Habit } from '@/data/db/schema';
 import {
   activeGoals,
   checkins,
   createHabit,
+  deleteHabit,
   ensureRoutineDefaults,
   habits,
   hasCompletedAnyRecord,
   metricSnapshot,
   setHabitCompleted,
+  updateHabit,
 } from '@/data/db/routineRepo';
 import { sincronizar } from '@/data/sync/engine';
 import { weeklySummary } from '@/data/db/summaryRepo';
@@ -40,6 +42,10 @@ import { NotificationSettings } from './NotificationSettings';
 const DOMAIN_COLOR: Record<string, string> = {
   treino: 'var(--tr-400)', nutricao: 'var(--nu-400)', financas: 'var(--fi-400)', rotina: 'var(--ro-400)',
 };
+
+const RRULE_DIAS_UTEIS = 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR';
+const RRULE_DIARIO = 'FREQ=DAILY';
+const ehDiasUteis = (rrule: string): boolean => rrule.includes('BYDAY');
 
 export function GoalsPage() {
   const user = useSession((state) => state.user);
@@ -77,7 +83,7 @@ export function GoalsPage() {
     if (!user || !name.trim()) return;
     await createHabit({
       nome: name.trim(), icone: '◇',
-      frequencia_rrule: weekdaysOnly ? 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR' : 'FREQ=DAILY',
+      frequencia_rrule: weekdaysOnly ? RRULE_DIAS_UTEIS : RRULE_DIARIO,
       meta_por_semana: weekdaysOnly ? 5 : 7,
     }, user.id);
     setName('');
@@ -149,6 +155,22 @@ export function GoalsPage() {
         })}</div>
       </div>
 
+      {data.habits.length ? (
+        <Card>
+          <h2 className="mb-sp-3 text-heading">Meus hábitos</h2>
+          <div className="flex flex-col gap-sp-1">
+            {data.habits.map((habit) => (
+              <HabitManagerRow
+                key={habit.id}
+                habit={habit}
+                onSave={(patch) => void updateHabit(habit.id, patch).then(() => sincronizar())}
+                onDelete={() => void deleteHabit(habit.id).then(() => sincronizar())}
+              />
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
       <Card>
         <h2 className="mb-sp-3 text-heading">Novo hábito</h2>
         <div className="flex flex-col gap-sp-3">
@@ -160,5 +182,107 @@ export function GoalsPage() {
 
       <NotificationSettings eligible={data.engaged} />
     </section>
+  );
+}
+
+function HabitManagerRow({
+  habit,
+  onSave,
+  onDelete,
+}: {
+  habit: Habit;
+  onSave: (patch: { nome: string; frequencia_rrule: string; meta_por_semana: number }) => void;
+  onDelete: () => void;
+}) {
+  const [modo, setModo] = useState<'idle' | 'edit' | 'delete'>('idle');
+  const [nome, setNome] = useState(habit.nome);
+  const [diasUteis, setDiasUteis] = useState(ehDiasUteis(habit.frequencia_rrule));
+
+  if (modo === 'delete') {
+    return (
+      <div className="flex min-h-tap items-center justify-between gap-sp-3 border-b border-border-subtle py-sp-2 text-body last:border-0">
+        <span>
+          Excluir <strong>{habit.nome}</strong>?
+        </span>
+        <span className="flex shrink-0 gap-sp-2">
+          <Button variant="ghost" onClick={() => setModo('idle')}>
+            Cancelar
+          </Button>
+          <Button variant="danger" onClick={onDelete}>
+            Excluir
+          </Button>
+        </span>
+      </div>
+    );
+  }
+
+  if (modo === 'edit') {
+    return (
+      <div className="flex flex-col gap-sp-3 border-b border-border-subtle py-sp-3 last:border-0">
+        <TextField
+          label="Nome do hábito"
+          value={nome}
+          maxLength={120}
+          onChange={(event) => setNome(event.target.value)}
+        />
+        <label className="flex min-h-tap items-center gap-sp-3 text-label">
+          <input
+            type="checkbox"
+            checked={diasUteis}
+            onChange={(event) => setDiasUteis(event.target.checked)}
+          />{' '}
+          Apenas dias úteis
+        </label>
+        <div className="flex gap-sp-2">
+          <Button variant="ghost" onClick={() => setModo('idle')}>
+            Cancelar
+          </Button>
+          <Button
+            disabled={!nome.trim()}
+            onClick={() => {
+              onSave({
+                nome: nome.trim(),
+                frequencia_rrule: diasUteis ? RRULE_DIAS_UTEIS : RRULE_DIARIO,
+                meta_por_semana: diasUteis ? 5 : 7,
+              });
+              setModo('idle');
+            }}
+          >
+            Salvar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-tap items-center gap-sp-3 border-b border-border-subtle py-sp-2 last:border-0">
+      <span aria-hidden="true">{habit.icone}</span>
+      <span className="min-w-0 flex-1">
+        <strong className="block text-body">{habit.nome}</strong>
+        <small className="text-caption text-text-muted">
+          {ehDiasUteis(habit.frequencia_rrule) ? 'Dias úteis' : 'Todo dia'}
+        </small>
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          setNome(habit.nome);
+          setDiasUteis(ehDiasUteis(habit.frequencia_rrule));
+          setModo('edit');
+        }}
+        className="min-h-tap px-sp-2 text-label text-text-secondary"
+      >
+        Editar
+      </button>
+      <button
+        type="button"
+        onClick={() => setModo('delete')}
+        aria-label={`Excluir ${habit.nome}`}
+        className="grid min-h-tap min-w-tap place-items-center text-text-muted"
+      >
+        <Icon name="trash" size={20} />
+      </button>
+    </div>
   );
 }
