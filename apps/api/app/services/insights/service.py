@@ -19,19 +19,23 @@ from app.ids import uuid7
 from app.models import NotificationPreference, NutritionInsight
 from app.services.insights.builder import montar_dados_diarios, montar_dados_semanais
 from app.services.insights.fake_provider import FakeProvider
+from app.services.insights.openai_provider import OpenAIProvider
 from app.services.insights.provider import InsightProvider, InsightRequest
 
 log = logging.getLogger("bealegend.insights")
 
 
 def build_provider(settings: Settings | None = None) -> InsightProvider:
-    """Escolhe o provider. Fase 1: sempre o fake.
-
-    Fase 2 troca por ``OpenAIProvider(settings)`` quando houver
-    ``openai_api_key``, mantendo o fake como fallback.
-    """
-    del settings
+    """OpenAI quando há chave; senão o fake (dev/testes/feature meio ligada)."""
+    settings = settings or get_settings()
+    if settings.openai_api_key:
+        return OpenAIProvider(settings)
     return FakeProvider()
+
+
+def get_insight_provider() -> InsightProvider:
+    """Dependência FastAPI — os testes sobrescrevem via ``dependency_overrides``."""
+    return build_provider()
 
 
 async def _opt_in(session: AsyncSession, user_id) -> bool:

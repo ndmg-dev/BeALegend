@@ -57,6 +57,15 @@ class Settings(BaseSettings):
     def production_secrets_are_explicit(self):
         if self.app_env == "production" and self.jwt_secret == "dev-only-change-me":
             raise ValueError("JWT_SECRET precisa ser configurado em producao")
+        if (
+            self.app_env == "production"
+            and self.nutrition_insights_enabled
+            and not self.openai_api_key
+        ):
+            raise ValueError(
+                "NUTRITION_INSIGHTS_ENABLED sem OPENAI_API_KEY em producao: "
+                "cairia no provider fake e serviria texto canned"
+            )
         return self
 
 

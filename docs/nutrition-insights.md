@@ -14,9 +14,15 @@
 > sob demanda** (mesmo cache de 1/período). O worker (fase 3) vira só
 > pré-aquecimento, não a única via.
 >
-> Pendente: fase 2 (`OpenAIProvider` + config), fase 3 (job do worker),
-> fase 4 (frontend), fase 5 (aviso no `docs/security.md`, tirar `notas` do
-> payload).
+> **Fase 2 implementada** (31/08/2026): `OpenAIProvider` (httpx direto no
+> `/chat/completions`, sem SDK), `build_provider()` escolhe OpenAI quando há
+> `OPENAI_API_KEY` e cai no fake senão. Endpoints recebem o provider por
+> `Depends(get_insight_provider)` — testes sobrescrevem via
+> `dependency_overrides`. Boot falha em produção se
+> `NUTRITION_INSIGHTS_ENABLED=true` sem chave. 9 testes com `httpx.MockTransport`.
+>
+> Pendente: fase 3 (job do worker), fase 4 (frontend), fase 5 (aviso no
+> `docs/security.md`, tirar `notas` do payload).
 
 ## Objetivo
 

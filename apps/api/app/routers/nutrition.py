@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import func, select
 
 from app.deps import CurrentUser, DbSession
@@ -14,10 +14,13 @@ from app.schemas.nutrition import (
     NutritionInsightOut,
 )
 from app.services.insights import (
-    build_provider,
+    InsightProvider,
     gerar_insight_diario,
     gerar_insight_semanal,
+    get_insight_provider,
 )
+
+InsightProviderDep = Annotated[InsightProvider, Depends(get_insight_provider)]
 
 router = APIRouter(prefix="/nutrition", tags=["nutrition"])
 
@@ -66,10 +69,10 @@ _SEM_INSIGHT = {204: {"description": "Sem insight disponível"}}
 
 @router.get("/insight/today", response_model=NutritionInsightOut, responses=_SEM_INSIGHT)
 async def nutrition_insight_today(
-    user: CurrentUser, session: DbSession
+    user: CurrentUser, session: DbSession, provider: InsightProviderDep
 ) -> NutritionInsightOut | Response:
     dia = hoje_no_fuso(user.timezone)
-    insight = await gerar_insight_diario(session, user.id, dia, build_provider())
+    insight = await gerar_insight_diario(session, user.id, dia, provider)
     if insight is None:
         return Response(status_code=204)
     return NutritionInsightOut.model_validate(insight)
@@ -79,12 +82,13 @@ async def nutrition_insight_today(
 async def nutrition_insight_weekly(
     user: CurrentUser,
     session: DbSession,
+    provider: InsightProviderDep,
     semana: Annotated[
         date | None, Query(description="Qualquer dia da semana desejada")
     ] = None,
 ) -> NutritionInsightOut | Response:
     inicio = _semana_inicio(semana or hoje_no_fuso(user.timezone))
-    insight = await gerar_insight_semanal(session, user.id, inicio, build_provider())
+    insight = await gerar_insight_semanal(session, user.id, inicio, provider)
     if insight is None:
         return Response(status_code=204)
     return NutritionInsightOut.model_validate(insight)
