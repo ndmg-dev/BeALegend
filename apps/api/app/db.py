@@ -5,18 +5,29 @@ Row-Level Security policies read. Isolation lives in Postgres, not in the
 application's WHERE clauses.
 """
 
+import os
 from collections.abc import AsyncIterator
 from uuid import UUID
 
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import Session as SyncSession
+from sqlalchemy.pool import NullPool
 
 from app.config import get_settings
 
 settings = get_settings()
 
-engine = create_async_engine(settings.database_url, pool_pre_ping=True, future=True)
+# Serverless (Vercel): cada invocação é um processo efêmero — pool não faz
+# sentido e o pgbouncer do Neon não gosta de prepared statement do asyncpg.
+_SERVERLESS = bool(os.getenv("VERCEL"))
+_engine_kwargs: dict = (
+    {"poolclass": NullPool, "connect_args": {"statement_cache_size": 0}}
+    if _SERVERLESS
+    else {"pool_pre_ping": True}
+)
+
+engine = create_async_engine(settings.database_url, future=True, **_engine_kwargs)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 

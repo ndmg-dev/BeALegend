@@ -1,0 +1,12 @@
+apps/api/.venv
+apps/api/tests
+apps/api/data
+apps/api/alembic
+apps/api/scripts
+apps/web/e2e
+apps/web/dist
+infra
+docs
+.github
+**/__pycache__
+**/*.pyc

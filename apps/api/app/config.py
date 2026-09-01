@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     openai_base_url: str = "https://api.openai.com/v1"
     openai_timeout_seconds: int = 20
 
+    # Segredo que um cron externo (cron-job.org) manda no header X-Cron-Secret
+    # para chamar POST /internal/tick — substitui o worker na Vercel.
+    cron_secret: str = ""
+
     vapid_public_key: str = ""
     vapid_private_key: str = ""
     vapid_subject: str = "mailto:admin@example.com"

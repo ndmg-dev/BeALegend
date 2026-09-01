@@ -14,6 +14,7 @@ from app.routers import (
     exercises,
     finance,
     health,
+    internal,
     notifications,
     nutrition,
     routine,
@@ -78,3 +79,4 @@ app.include_router(nutrition.router)
 app.include_router(notifications.router)
 app.include_router(routine.router)
 app.include_router(dashboard.router)
+app.include_router(internal.router)
