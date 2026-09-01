@@ -34,7 +34,11 @@ async def tick(request: Request) -> dict:
         # 404, nao 401 — nao anuncia que a rota existe.
         raise _NAO_ENCONTRADO
 
-    engine = create_async_engine(settings.database_owner_url, poolclass=NullPool)
+    engine = create_async_engine(
+        settings.database_owner_url,
+        poolclass=NullPool,
+        connect_args={"statement_cache_size": 0},
+    )
     OwnerSession = async_sessionmaker(engine, expire_on_commit=False)
     try:
         async with OwnerSession() as session:

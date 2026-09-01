@@ -31,7 +31,11 @@ def _do_run(connection) -> None:
 
 
 async def run_migrations_online() -> None:
-    engine = create_async_engine(DB_URL, poolclass=None)
+    # statement_cache_size=0: sobrevive ao pgbouncer do Neon (o pooler não
+    # aceita prepared statement do asyncpg). Inofensivo contra Postgres direto.
+    engine = create_async_engine(
+        DB_URL, poolclass=None, connect_args={"statement_cache_size": 0}
+    )
     async with engine.connect() as connection:
         await connection.run_sync(_do_run)
     await engine.dispose()
