@@ -6,6 +6,9 @@ Roda como a role OWNER (bypassa RLS), porque cria o catálogo global de
 exercícios e de protocolos de cardio (``is_global=true``, ``user_id NULL``),
 o que a role de runtime não pode fazer.
 
+Um plano de cada vez fica ativo: ao criar o novo, os planos ativos anteriores
+do usuário passam a ``ativo=false`` (continuam no histórico, nada é apagado).
+
 Idempotente: rodar de novo sem ``--force`` não duplica nada — atualiza o
 catálogo global e pula a criação do plano se um plano ativo com o mesmo nome
 já existir para o usuário. Com ``--force``, o plano antigo (e tudo embaixo
@@ -44,9 +47,9 @@ from app.seed.parsing import (  # noqa: E402
 )
 
 DEFAULT_XLSX = Path(__file__).resolve().parent.parent / "data" / (
-    "planilha_treino_semanal_atualizada_sabado.xlsx"
+    "planilha_treino_semanal_com_estacao_strengthflow.xlsx"
 )
-DEFAULT_PLAN_NAME = "Força + corrida + HIIT + bike"
+DEFAULT_PLAN_NAME = "Força + estação + corrida + HIIT + bike"
 
 
 def _ler_linhas(ws, colunas_esperadas: list[str]) -> list[dict]:
@@ -192,6 +195,21 @@ async def _criar_plano(
         await session.execute(delete(TrainingPlan).where(TrainingPlan.id == existente.id))
         await session.flush()
 
+    # Um plano de cada vez fica ativo: a rotina nova substitui a anterior no app,
+    # mas os planos antigos continuam no histórico (só deixam de ser o ativo).
+    anteriores = (
+        await session.scalars(
+            select(TrainingPlan).where(
+                TrainingPlan.user_id == usuario.id,
+                TrainingPlan.ativo.is_(True),
+                TrainingPlan.deleted_at.is_(None),
+            )
+        )
+    ).all()
+    for anterior in anteriores:
+        anterior.ativo = False
+        print(f"Plano {anterior.nome!r} desativado (continua no histórico).")
+
     plano = TrainingPlan(id=uuid7(), user_id=usuario.id, nome=nome_plano, ativo=True)
     session.add(plano)
     await session.flush()
@@ -293,7 +311,9 @@ async def main() -> None:
 
     dados = carregar_planilha(args.xlsx)
 
-    engine = create_async_engine(database_url)
+    # O pgbouncer do Neon (endpoint "-pooler") não gosta de prepared statement
+    # do asyncpg — mesmo ajuste que a API usa para falar com o pooler.
+    engine = create_async_engine(database_url, connect_args={"statement_cache_size": 0})
     async with AsyncSession(engine) as session:
         usuario = await _obter_usuario(session, args.email)
         exercicios_por_nome = await _upsert_exercicios_globais(session, dados["exercicios"])
