@@ -2,9 +2,13 @@ import { uuidv7 } from '@/data/ids';
 import { enfileirar } from '@/data/sync/outbox';
 import {
   db,
+  type FoodItem,
   type MealLog,
   type MealPlan,
   type MealSlot,
+  type MealSlotItem,
+  type NutritionTarget,
+  type Supplement,
   type WaterLog,
 } from './schema';
 
@@ -120,4 +124,74 @@ export async function addWater(day: string, ml: number, userId: string): Promise
     });
   });
   return line;
+}
+
+/**
+ * O plano alimentar como a tela precisa: refeições, o que compõe cada uma,
+ * a base de alimentos e a meta.
+ *
+ * Tudo isto é somente leitura no cliente — nasce do seed da planilha de dieta
+ * e chega pelo delta do sync. Nenhuma função aqui enfileira nada no outbox.
+ */
+export async function dietPlan(): Promise<{
+  plano: MealPlan | null;
+  slots: MealSlot[];
+  itens: MealSlotItem[];
+  alimentosPorId: Map<string, FoodItem>;
+  meta: NutritionTarget | null;
+} > {
+  const plano = await activeMealPlan();
+  if (!plano) {
+    return { plano: null, slots: [], itens: [], alimentosPorId: new Map(), meta: null };
+  }
+
+  const slots = await mealSlots();
+  const idsDosSlots = new Set(slots.map((slot) => slot.id));
+  const itens = (await db.meal_slot_item.toArray())
+    .filter((item) => item.deleted_at === null && idsDosSlots.has(item.meal_slot_id))
+    .sort((a, b) => a.ordem - b.ordem);
+
+  const alimentos = (await db.food_item.toArray()).filter((item) => item.deleted_at === null);
+  const meta = (await db.nutrition_target.toArray()).find(
+    (alvo) => alvo.deleted_at === null && alvo.meal_plan_id === plano.id,
+  );
+
+  return {
+    plano,
+    slots,
+    itens,
+    alimentosPorId: new Map(alimentos.map((item) => [item.id, item])),
+    meta: meta ?? null,
+  };
+}
+
+export async function foodItems(): Promise<FoodItem[]> {
+  return (await db.food_item.toArray())
+    .filter((item) => item.deleted_at === null)
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+
+export async function supplements(): Promise<Supplement[]> {
+  return (await db.supplement.toArray())
+    .filter((item) => item.deleted_at === null)
+    .sort((a, b) => a.ordem - b.ordem);
+}
+
+/**
+ * Peso mais recente — entra no cálculo das metas.
+ *
+ * Diferente do resto do plano, o peso não vive no Dexie: `body_metric` só
+ * existe no servidor, então ele chega pelo endpoint do plano e fica cacheado
+ * no store `meta` para a tela continuar calculando offline. Um peso de dias
+ * atrás muda a meta em gramas — vale muito mais que não mostrar meta nenhuma.
+ */
+const CHAVE_PESO = 'nutrition_peso_kg';
+
+export async function cachedWeightKg(): Promise<number | null> {
+  const linha = await db.meta.get(CHAVE_PESO);
+  return typeof linha?.valor === 'number' ? linha.valor : null;
+}
+
+export async function saveWeightKg(peso: number | null): Promise<void> {
+  await db.meta.put({ chave: CHAVE_PESO, valor: peso });
 }

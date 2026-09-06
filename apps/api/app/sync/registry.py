@@ -13,7 +13,16 @@ from app.models.achievements import AchievementUnlock
 from app.models.base import Base
 from app.models.exercise import Exercise
 from app.models.finance import Account, Budget, Category, FinanceTransaction, Recurring
-from app.models.nutrition import MealLog, MealPlan, MealSlot, WaterLog
+from app.models.nutrition import (
+    FoodItem,
+    MealLog,
+    MealPlan,
+    MealSlot,
+    MealSlotItem,
+    NutritionTarget,
+    Supplement,
+    WaterLog,
+)
 from app.models.routine import Goal, Habit, HabitCheckin
 from app.models.training import (
     BodyMetric,
@@ -215,6 +224,36 @@ REGISTRY: dict[str, SyncEntity] = {
         model=WaterLog,
         schema_create=WaterLogCreate,
         schema_patch=None,
+    ),
+    # Dieta: o seed escreve (como owner), o cliente so le pelo delta — mesma
+    # regra do plano semanal de treino.
+    "food_item": SyncEntity(
+        nome="food_item",
+        model=FoodItem,
+        schema_create=ExerciseCreate,
+        schema_patch=None,
+        somente_leitura=True,
+    ),
+    "meal_slot_item": SyncEntity(
+        nome="meal_slot_item",
+        model=MealSlotItem,
+        schema_create=ExerciseCreate,
+        schema_patch=None,
+        somente_leitura=True,
+    ),
+    "nutrition_target": SyncEntity(
+        nome="nutrition_target",
+        model=NutritionTarget,
+        schema_create=ExerciseCreate,
+        schema_patch=None,
+        somente_leitura=True,
+    ),
+    "supplement": SyncEntity(
+        nome="supplement",
+        model=Supplement,
+        schema_create=ExerciseCreate,
+        schema_patch=None,
+        somente_leitura=True,
     ),
     "habit": SyncEntity(
         nome="habit",

@@ -2,27 +2,31 @@ import { z } from 'zod';
 import { request } from '@/data/api/client';
 import { ApiError, NetworkError } from '@/data/api/problem';
 import {
-  META_CURSOR,
-  META_ULTIMO_SYNC,
-  achievementUnlockSchema,
   accountSchema,
+  achievementUnlockSchema,
   budgetSchema,
-  categorySchema,
   cardioProtocolSchema,
+  categorySchema,
   db,
   exerciseSchema,
-  planDaySchema,
-  planItemSchema,
   financeTransactionSchema,
+  foodItemSchema,
   goalSchema,
   habitCheckinSchema,
   habitSchema,
   mealLogSchema,
   mealPlanSchema,
+  mealSlotItemSchema,
   mealSlotSchema,
+  META_CURSOR,
+  META_ULTIMO_SYNC,
+  nutritionTargetSchema,
+  planDaySchema,
+  planItemSchema,
   recurringSchema,
   sessionSchema,
   setLogSchema,
+  supplementSchema,
   trainingPlanSchema,
   waterLogSchema,
 } from '@/data/db/schema';
@@ -82,6 +86,10 @@ const SCHEMAS = {
   habit_checkin: habitCheckinSchema,
   goal: goalSchema,
   achievement_unlock: achievementUnlockSchema,
+  food_item: foodItemSchema,
+  meal_slot_item: mealSlotItemSchema,
+  nutrition_target: nutritionTargetSchema,
+  supplement: supplementSchema,
 } as const;
 type EntidadeConhecida = keyof typeof SCHEMAS;
 
@@ -106,6 +114,10 @@ const TABELAS = {
   habit_checkin: db.habit_checkin,
   goal: db.goal,
   achievement_unlock: db.achievement_unlock,
+  food_item: db.food_item,
+  meal_slot_item: db.meal_slot_item,
+  nutrition_target: db.nutrition_target,
+  supplement: db.supplement,
 } as const;
 
 function ehEntidadeConhecida(nome: string): nome is EntidadeConhecida {

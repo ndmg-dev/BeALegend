@@ -5,13 +5,29 @@ from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy import func, select
 
 from app.deps import CurrentUser, DbSession
-from app.models import MealLog, MealPlan, MealSlot, WaterLog
+from app.errors import ProblemException
+from app.models import (
+    BodyMetric,
+    FoodItem,
+    MealLog,
+    MealPlan,
+    MealSlot,
+    MealSlotItem,
+    NutritionTarget,
+    Supplement,
+    WaterLog,
+)
 from app.routers.training import hoje_no_fuso
 from app.schemas.nutrition import (
+    FoodItemOut,
     MealLogOut,
+    MealPlanOut,
+    MealSlotItemOut,
     MealSlotOut,
     NutritionDayOut,
     NutritionInsightOut,
+    NutritionTargetOut,
+    SupplementOut,
 )
 from app.services.insights import (
     InsightProvider,
@@ -56,6 +72,79 @@ async def nutrition_day(day: date, user: CurrentUser, session: DbSession) -> Nut
         slots=[MealSlotOut.model_validate(slot) for slot in slots],
         refeicoes=[MealLogOut.model_validate(meal) for meal in meals],
         agua_ml=int(water or 0),
+    )
+
+
+@router.get("/plan", response_model=MealPlanOut)
+async def meal_plan(user: CurrentUser, session: DbSession) -> MealPlanOut:
+    """O plano alimentar ativo, inteiro — o que a planilha de dieta virou.
+
+    Sem filtro por ``user_id`` nas queries: quem filtra é a RLS. O catálogo
+    de alimentos e suplementos é global, então a policy deixa passar as linhas
+    ``is_global`` além das do próprio usuário.
+    """
+    plano = await session.scalar(
+        select(MealPlan).where(MealPlan.ativo.is_(True), MealPlan.deleted_at.is_(None))
+    )
+    if plano is None:
+        raise ProblemException(
+            404,
+            "Sem plano alimentar",
+            "Nenhum plano alimentar ativo. Rode o seed da planilha de dieta.",
+            "https://bealegend.app/problems/not-found",
+        )
+
+    slots = list(
+        await session.scalars(
+            select(MealSlot)
+            .where(MealSlot.meal_plan_id == plano.id, MealSlot.deleted_at.is_(None))
+            .order_by(MealSlot.ordem)
+        )
+    )
+    itens = list(
+        await session.scalars(
+            select(MealSlotItem)
+            .where(
+                MealSlotItem.meal_slot_id.in_([slot.id for slot in slots] or [None]),
+                MealSlotItem.deleted_at.is_(None),
+            )
+            .order_by(MealSlotItem.ordem)
+        )
+    )
+    alimentos = list(
+        await session.scalars(
+            select(FoodItem).where(FoodItem.deleted_at.is_(None)).order_by(FoodItem.nome)
+        )
+    )
+    suplementos = list(
+        await session.scalars(
+            select(Supplement).where(Supplement.deleted_at.is_(None)).order_by(Supplement.ordem)
+        )
+    )
+    meta = await session.scalar(
+        select(NutritionTarget).where(
+            NutritionTarget.meal_plan_id == plano.id, NutritionTarget.deleted_at.is_(None)
+        )
+    )
+    peso = await session.scalar(
+        select(BodyMetric.valor)
+        .where(
+            BodyMetric.tipo == "peso",
+            BodyMetric.valor.is_not(None),
+            BodyMetric.deleted_at.is_(None),
+        )
+        .order_by(BodyMetric.data.desc())
+        .limit(1)
+    )
+
+    return MealPlanOut(
+        nome=plano.nome,
+        slots=[MealSlotOut.model_validate(slot) for slot in slots],
+        itens=[MealSlotItemOut.model_validate(item) for item in itens],
+        alimentos=[FoodItemOut.model_validate(a) for a in alimentos],
+        suplementos=[SupplementOut.model_validate(s) for s in suplementos],
+        meta=NutritionTargetOut.model_validate(meta) if meta else None,
+        peso_kg=float(peso) if peso is not None else None,
     )
 
 

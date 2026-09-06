@@ -196,6 +196,46 @@ export const waterLogSchema = z.object({
 });
 export type WaterLog = z.infer<typeof waterLogSchema>;
 
+/**
+ * Catálogo de alimentos — macros por 100 g/ml, como a TACO e os rótulos
+ * publicam. `user_id` é nulo nas linhas globais que vieram do seed.
+ */
+export const foodItemSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid().nullable(), is_global: z.boolean(),
+  nome: z.string(), kcal: z.number(), proteina_g: z.number(), carboidrato_g: z.number(),
+  gordura_g: z.number(), fibra_g: z.number(), referencia_pratica: z.string().nullable(),
+  fonte: z.string().nullable(), conferir_rotulo: z.boolean(), ...syncFields,
+});
+export type FoodItem = z.infer<typeof foodItemSchema>;
+
+/** Alimento planejado numa refeição. `quantidade_g` nula = sugestão sem porção. */
+export const mealSlotItemSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), meal_slot_id: z.string().uuid(),
+  food_item_id: z.string().uuid(), quantidade_g: z.number().nullable(),
+  ordem: z.number().int(), observacao: z.string().nullable(), ...syncFields,
+});
+export type MealSlotItem = z.infer<typeof mealSlotItemSchema>;
+
+/** Parâmetros da meta diária. Os valores absolutos derivam do peso atual. */
+export const nutritionTargetSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), meal_plan_id: z.string().uuid(),
+  proteina_g_kg: z.number(), gordura_g_kg: z.number(), fibra_g_por_1000kcal: z.number(),
+  fator_atividade: z.number(), ajuste_calorico: z.number(),
+  manutencao_kcal_manual: z.number().int().nullable(),
+  sexo: z.enum(['M', 'F']).nullable(), idade: z.number().int().nullable(),
+  altura_cm: z.number().int().nullable(), ...syncFields,
+});
+export type NutritionTarget = z.infer<typeof nutritionTargetSchema>;
+
+export const supplementSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid().nullable(), is_global: z.boolean(),
+  nome: z.string(), como_usar: z.string().nullable(), faixa: z.string().nullable(),
+  horario: z.string().nullable(), observar: z.string().nullable(),
+  fonte: z.string().nullable(), status: z.string().nullable(),
+  ordem: z.number().int(), ...syncFields,
+});
+export type Supplement = z.infer<typeof supplementSchema>;
+
 // ---------------------------------------------------------------------------
 // Rotina e metas — progresso sempre derivado de métricas reais
 // ---------------------------------------------------------------------------
@@ -281,6 +321,10 @@ class BeALegendDB extends Dexie {
   meal_slot!: EntityTable<MealSlot, 'id'>;
   meal_log!: EntityTable<MealLog, 'id'>;
   water_log!: EntityTable<WaterLog, 'id'>;
+  food_item!: EntityTable<FoodItem, 'id'>;
+  meal_slot_item!: EntityTable<MealSlotItem, 'id'>;
+  nutrition_target!: EntityTable<NutritionTarget, 'id'>;
+  supplement!: EntityTable<Supplement, 'id'>;
   habit!: EntityTable<Habit, 'id'>;
   habit_checkin!: EntityTable<HabitCheckin, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
@@ -401,6 +445,37 @@ class BeALegendDB extends Dexie {
       goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
       achievement_unlock: 'id, achievement_key, row_version, deleted_at',
     });
+
+    // v7 — dieta: catálogo de alimentos, itens da refeição, meta e suplementos.
+    // Todas somente leitura no cliente; quem escreve é o seed, via delta.
+    this.version(7).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+      meal_plan: 'id, ativo, row_version, deleted_at',
+      meal_slot: 'id, meal_plan_id, ordem, row_version, deleted_at',
+      meal_log: 'id, data, slot_id, horario, row_version, deleted_at',
+      water_log: 'id, data, registrado_em, row_version, deleted_at',
+      habit: 'id, nome, ativo, row_version, deleted_at',
+      habit_checkin: 'id, habit_id, data, concluido, row_version, deleted_at',
+      goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
+      achievement_unlock: 'id, achievement_key, row_version, deleted_at',
+      food_item: 'id, nome, row_version, deleted_at',
+      meal_slot_item: 'id, meal_slot_id, food_item_id, ordem, row_version, deleted_at',
+      nutrition_target: 'id, meal_plan_id, row_version, deleted_at',
+      supplement: 'id, nome, ordem, row_version, deleted_at',
+    });
   }
 }
 
@@ -448,6 +523,10 @@ export async function limparTudo(): Promise<void> {
     db.habit_checkin,
     db.goal,
     db.achievement_unlock,
+    db.food_item,
+    db.meal_slot_item,
+    db.nutrition_target,
+    db.supplement,
   ] as const;
   await db.transaction('rw', tabelas, async () => {
     await Promise.all(tabelas.map((t) => t.clear()));

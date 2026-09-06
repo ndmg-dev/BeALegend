@@ -4,7 +4,17 @@ from app.models.exercise import Exercise
 from app.models.finance import Account, Budget, Category, FinanceTransaction, Recurring
 from app.models.idempotency import IdempotencyRecord
 from app.models.notifications import NotificationDelivery, NotificationPreference, PushSubscription
-from app.models.nutrition import MealLog, MealPlan, MealSlot, NutritionInsight, WaterLog
+from app.models.nutrition import (
+    FoodItem,
+    MealLog,
+    MealPlan,
+    MealSlot,
+    MealSlotItem,
+    NutritionInsight,
+    NutritionTarget,
+    Supplement,
+    WaterLog,
+)
 from app.models.routine import Goal, Habit, HabitCheckin
 from app.models.training import (
     BodyMetric,
@@ -19,6 +29,7 @@ from app.models.training import (
 from app.models.user import RefreshToken, User
 
 __all__ = [
+    "Account",
     "AchievementUnlock",
     "Base",
     "BodyMetric",
@@ -28,6 +39,7 @@ __all__ = [
     "Category",
     "Exercise",
     "FinanceTransaction",
+    "FoodItem",
     "Goal",
     "Habit",
     "HabitCheckin",
@@ -35,19 +47,21 @@ __all__ = [
     "MealLog",
     "MealPlan",
     "MealSlot",
-    "NutritionInsight",
+    "MealSlotItem",
     "NotificationDelivery",
     "NotificationPreference",
+    "NutritionInsight",
+    "NutritionTarget",
     "PlanDay",
     "PlanItem",
+    "PushSubscription",
     "Recurring",
     "RefreshToken",
     "Session",
     "SetLog",
+    "Supplement",
     "SyncMixin",
     "TrainingPlan",
     "User",
     "WaterLog",
-    "Account",
-    "PushSubscription",
 ]

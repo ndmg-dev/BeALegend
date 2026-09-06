@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -87,6 +88,143 @@ class WaterLog(Base, SyncMixin):
     data: Mapped[date] = mapped_column(Date, nullable=False)
     ml: Mapped[int] = mapped_column(Integer, nullable=False)
     registrado_em: Mapped[str] = mapped_column(String(30), nullable=False)
+
+
+class FoodItem(Base, SyncMixin):
+    """Catálogo de alimentos — macros por 100 g/ml.
+
+    Mesma forma do ``Exercise``: ``is_global=true`` com ``user_id NULL`` é o
+    catálogo que o seed escreve e todo mundo enxerga; uma linha com dono é um
+    alimento que o próprio usuário cadastrou.
+
+    Os valores são por 100 g (ou 100 ml, para líquidos) porque é assim que a
+    tabela TACO e os rótulos publicam — converter na origem faria a porção
+    virar a unidade e perderia a base de comparação.
+    """
+
+    __tablename__ = "food_item"
+    __table_args__ = (
+        CheckConstraint(
+            "(is_global AND user_id IS NULL) OR (NOT is_global AND user_id IS NOT NULL)",
+            name="ck_food_item_global_xor_owned",
+        ),
+        Index("ix_food_item_user_id_nome", "user_id", "nome"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    user_id: Mapped[UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), nullable=True
+    )
+    is_global: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    nome: Mapped[str] = mapped_column(String(120), nullable=False)
+    kcal: Mapped[float] = mapped_column(Numeric(7, 2), nullable=False)
+    proteina_g: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False)
+    carboidrato_g: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False)
+    gordura_g: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False)
+    fibra_g: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False)
+    #: "~50 g por ovo grande" — ajuda a estimar a porção sem balança.
+    referencia_pratica: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    fonte: Mapped[str | None] = mapped_column(Text, nullable=True)
+    #: Industrializado: o rótulo da marca real ganha do valor genérico daqui.
+    conferir_rotulo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
+class MealSlotItem(Base, SyncMixin):
+    """Alimento planejado dentro de uma refeição — o ``PlanItem`` da dieta.
+
+    ``quantidade_g`` é opcional de propósito: a planilha de origem sugere os
+    alimentos de cada refeição sem fixar as porções, que ficam para o usuário
+    fechar contra a meta do dia. Sem quantidade, o item vale como sugestão.
+    """
+
+    __tablename__ = "meal_slot_item"
+    __table_args__ = (Index("ix_meal_slot_item_user_id_slot", "user_id", "meal_slot_id"),)
+
+    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False
+    )
+    meal_slot_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("meal_slot.id", ondelete="CASCADE"), nullable=False
+    )
+    food_item_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("food_item.id", ondelete="CASCADE"), nullable=False
+    )
+    quantidade_g: Mapped[float | None] = mapped_column(Numeric(7, 2), nullable=True)
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    observacao: Mapped[str | None] = mapped_column(String(240), nullable=True)
+
+
+class NutritionTarget(Base, SyncMixin):
+    """Parâmetros de meta do plano — a régua contra a qual o dia é lido.
+
+    Guarda os *parâmetros* (g/kg, fator de atividade, ajuste calórico), não os
+    valores absolutos: proteína e gordura derivam do peso atual, que muda. O
+    peso vem do ``body_metric`` mais recente, então a meta acompanha sozinha.
+
+    Sexo, idade e altura ficam aqui, opcionais, porque a estimativa de
+    metabolismo basal precisa deles e o cadastro do app não os coleta. Sem
+    eles, proteína/gordura ainda saem do peso; a meta calórica fica em aberto,
+    e é melhor não mostrar número do que mostrar um número inventado.
+    """
+
+    __tablename__ = "nutrition_target"
+    __table_args__ = (
+        CheckConstraint("sexo IS NULL OR sexo IN ('M','F')", name="ck_nutrition_target_sexo"),
+        Index("ix_nutrition_target_user_id_plan", "user_id", "meal_plan_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False
+    )
+    meal_plan_id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("meal_plan.id", ondelete="CASCADE"), nullable=False
+    )
+    proteina_g_kg: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
+    gordura_g_kg: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False)
+    fibra_g_por_1000kcal: Mapped[float] = mapped_column(Numeric(4, 1), nullable=False)
+    fator_atividade: Mapped[float] = mapped_column(Numeric(3, 2), nullable=False)
+    #: 0.03 = superávit de 3% sobre a manutenção estimada.
+    ajuste_calorico: Mapped[float] = mapped_column(Numeric(4, 3), nullable=False)
+    #: Preenchida quando o usuário já conhece a própria manutenção real;
+    #: quando existe, dispensa a estimativa por fórmula.
+    manutencao_kcal_manual: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    sexo: Mapped[str | None] = mapped_column(String(1), nullable=True)
+    idade: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    altura_cm: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class Supplement(Base, SyncMixin):
+    """Suplemento do plano. Global (do seed) ou do próprio usuário.
+
+    Fora dos macros de propósito: creatina não é caloria nem proteína, e whey
+    já entra como alimento na ``food_item``. O que se acompanha aqui é uso e
+    constância, não contagem.
+    """
+
+    __tablename__ = "supplement"
+    __table_args__ = (
+        CheckConstraint(
+            "(is_global AND user_id IS NULL) OR (NOT is_global AND user_id IS NOT NULL)",
+            name="ck_supplement_global_xor_owned",
+        ),
+        Index("ix_supplement_user_id_nome", "user_id", "nome"),
+    )
+
+    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    user_id: Mapped[UUID | None] = mapped_column(
+        PgUUID(as_uuid=True), ForeignKey("app_user.id", ondelete="CASCADE"), nullable=True
+    )
+    is_global: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    nome: Mapped[str] = mapped_column(String(120), nullable=False)
+    como_usar: Mapped[str | None] = mapped_column(Text, nullable=True)
+    faixa: Mapped[str | None] = mapped_column(Text, nullable=True)
+    horario: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    observar: Mapped[str | None] = mapped_column(Text, nullable=True)
+    fonte: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    ordem: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class NutritionInsight(Base, SyncMixin):

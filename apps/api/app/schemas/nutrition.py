@@ -98,3 +98,70 @@ class NutritionInsightOut(BaseModel):
     periodo_ref: date
     texto: str
     gerado_em: datetime
+
+
+class FoodItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    nome: str
+    kcal: float
+    proteina_g: float
+    carboidrato_g: float
+    gordura_g: float
+    fibra_g: float
+    referencia_pratica: str | None
+    fonte: str | None
+    conferir_rotulo: bool
+
+
+class MealSlotItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    meal_slot_id: UUID
+    food_item_id: UUID
+    quantidade_g: float | None
+    ordem: int
+    observacao: str | None
+
+
+class NutritionTargetOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    proteina_g_kg: float
+    gordura_g_kg: float
+    fibra_g_por_1000kcal: float
+    fator_atividade: float
+    ajuste_calorico: float
+    manutencao_kcal_manual: int | None
+    sexo: str | None
+    idade: int | None
+    altura_cm: int | None
+
+
+class SupplementOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: UUID
+    nome: str
+    como_usar: str | None
+    faixa: str | None
+    horario: str | None
+    observar: str | None
+    fonte: str | None
+    status: str | None
+    ordem: int
+
+
+class MealPlanOut(BaseModel):
+    """O plano alimentar inteiro, do jeito que a tela precisa dele.
+
+    Vem em uma resposta só porque a tela mostra tudo junto: sem a base de
+    alimentos os itens da refeição são só ids, e sem a meta não há régua.
+    """
+
+    nome: str
+    slots: list[MealSlotOut]
+    itens: list[MealSlotItemOut]
+    alimentos: list[FoodItemOut]
+    suplementos: list[SupplementOut]
+    meta: NutritionTargetOut | None
+    #: Peso mais recente do body_metric — entra no cálculo de proteína/gordura.
+    peso_kg: float | None

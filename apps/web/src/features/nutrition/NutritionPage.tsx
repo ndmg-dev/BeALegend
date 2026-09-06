@@ -7,8 +7,11 @@ import {
   ensureNutritionDefaults,
   mealsOnDay,
   mealSlots,
+  saveWeightKg,
   waterOnDay,
 } from '@/data/db/nutritionRepo';
+import { fetchDietPlan } from '@/data/api/dietPlan';
+import { DietPlan } from './DietPlan';
 import {
   fetchTodayInsight,
   fetchWeeklyInsight,
@@ -31,6 +34,7 @@ export function NutritionPage() {
   const user = useSession((state) => state.user);
   const day = user ? toLocalDate(new Date(), user.timezone) : '';
   const [selectedSlot, setSelectedSlot] = useState<MealSlot | null>(null);
+  const [aba, setAba] = useState<'hoje' | 'plano'>('hoje');
   const data = useLiveQuery(async () => ({
     slots: await mealSlots(),
     meals: await mealsOnDay(day),
@@ -61,6 +65,11 @@ export function NutritionPage() {
       if (cancelled) return;
       if (diario.status === 'fulfilled') await saveInsight('diario', diario.value);
       if (semanal.status === 'fulfilled') await saveInsight('semanal', semanal.value);
+      // O peso vem daqui porque `body_metric` não é sincronizado para o Dexie;
+      // sem ele a meta de proteína/gordura não fecha. Falha de rede não é
+      // problema: o valor cacheado da última vez continua valendo.
+      const plano = await fetchDietPlan().catch(() => null);
+      if (!cancelled && plano) await saveWeightKg(plano.peso_kg);
     })();
     return () => { cancelled = true; };
   }, [user, day]);
@@ -78,10 +87,30 @@ export function NutritionPage() {
       <header>
         <h1 className="text-title">Comer</h1>
         <p className="text-label text-text-muted">
-          {adherence.total ? `${adherence.percentual}% de aderência hoje` : 'Registre sem contar calorias'}
+          {aba === 'plano'
+            ? 'Seu plano alimentar'
+            : adherence.total
+              ? `${adherence.percentual}% de aderência hoje`
+              : 'Registre sem contar calorias'}
         </p>
       </header>
 
+      <div role="tablist" aria-label="Comer" className="flex gap-sp-2">
+        {([['hoje', 'Hoje'], ['plano', 'Plano']] as const).map(([valor, rotulo]) => (
+          <CategoryPill
+            key={valor}
+            role="tab"
+            aria-selected={aba === valor}
+            selected={aba === valor}
+            onClick={() => setAba(valor)}
+          >
+            {rotulo}
+          </CategoryPill>
+        ))}
+      </div>
+
+      {aba === 'plano' ? <DietPlan /> : (
+      <>
       {insight ? <InsightCard insight={insight} /> : null}
 
       <Card className="border-l-[3px] border-l-nutricao-400">
@@ -150,6 +179,8 @@ export function NutritionPage() {
           </div>
         </Card>
       ) : null}
+      </>
+      )}
     </section>
   );
 }
