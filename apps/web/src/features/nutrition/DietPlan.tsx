@@ -39,10 +39,10 @@ export function DietPlan() {
 
   if (!dados.plano.plano) {
     return (
-      <EmptyState
-        title="Nenhum plano alimentar"
-        description="O plano da planilha de dieta ainda não chegou neste dispositivo. Sincronize e tente de novo."
-      />
+      <EmptyState title="Nenhum plano alimentar">
+        O plano da planilha de dieta ainda não chegou neste dispositivo. Sincronize e tente de
+        novo.
+      </EmptyState>
     );
   }
 
@@ -275,7 +275,7 @@ function BaseDeAlimentos({ alimentos }: { alimentos: FoodItem[] }) {
 function Suplementos({ itens }: { itens: { id: string; nome: string; como_usar: string | null;
   faixa: string | null; horario: string | null; observar: string | null; status: string | null }[] }) {
   if (!itens.length) {
-    return <EmptyState title="Sem suplementos" description="Nada cadastrado no plano." />;
+    return <EmptyState title="Sem suplementos">Nada cadastrado no plano.</EmptyState>;
   }
   return (
     <div className="flex flex-col gap-sp-4">
