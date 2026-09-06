@@ -33,8 +33,15 @@ def _do_run(connection) -> None:
 async def run_migrations_online() -> None:
     # statement_cache_size=0: sobrevive ao pgbouncer do Neon (o pooler não
     # aceita prepared statement do asyncpg). Inofensivo contra Postgres direto.
+    #
+    # timeout largo: o compute serverless do Neon hiberna, e o cold start pode
+    # passar do timeout padrão do asyncpg — o que aborta a migration por
+    # impaciência, não por erro. Migration é rara e manual: esperar sai bem
+    # mais barato que aplicar pela metade.
     engine = create_async_engine(
-        DB_URL, poolclass=None, connect_args={"statement_cache_size": 0}
+        DB_URL,
+        poolclass=None,
+        connect_args={"statement_cache_size": 0, "timeout": 180, "command_timeout": 180},
     )
     async with engine.connect() as connection:
         await connection.run_sync(_do_run)

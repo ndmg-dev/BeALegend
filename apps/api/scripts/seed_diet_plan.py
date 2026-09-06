@@ -288,9 +288,14 @@ async def main() -> None:
 
     dados = carregar_planilha(args.xlsx)
 
-    # O pgbouncer do Neon (endpoint "-pooler") não gosta de prepared statement
-    # do asyncpg — mesmo ajuste que a API usa para falar com o pooler.
-    engine = create_async_engine(database_url, connect_args={"statement_cache_size": 0})
+    # statement_cache_size=0: o pgbouncer do Neon (endpoint "-pooler") não
+    # aceita prepared statement do asyncpg. O timeout largo é pelo cold start
+    # do compute serverless, que passa do padrão do asyncpg e abortaria o seed
+    # por impaciência — seed é raro e manual, esperar não custa nada.
+    engine = create_async_engine(
+        database_url,
+        connect_args={"statement_cache_size": 0, "timeout": 180, "command_timeout": 180},
+    )
     async with AsyncSession(engine) as session:
         usuario = await _obter_usuario(session, args.email)
         alimentos_por_nome = await _upsert_alimentos_globais(session, dados["alimentos"])

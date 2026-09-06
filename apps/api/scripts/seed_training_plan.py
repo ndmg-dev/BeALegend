@@ -46,8 +46,10 @@ from app.seed.parsing import (  # noqa: E402
     unificar_exercicios,
 )
 
-DEFAULT_XLSX = Path(__file__).resolve().parent.parent / "data" / (
-    "planilha_treino_semanal_com_estacao_strengthflow.xlsx"
+DEFAULT_XLSX = (
+    Path(__file__).resolve().parent.parent
+    / "data"
+    / ("planilha_treino_semanal_com_estacao_strengthflow.xlsx")
 )
 DEFAULT_PLAN_NAME = "Força + estação + corrida + HIIT + bike"
 
@@ -311,9 +313,14 @@ async def main() -> None:
 
     dados = carregar_planilha(args.xlsx)
 
-    # O pgbouncer do Neon (endpoint "-pooler") não gosta de prepared statement
-    # do asyncpg — mesmo ajuste que a API usa para falar com o pooler.
-    engine = create_async_engine(database_url, connect_args={"statement_cache_size": 0})
+    # statement_cache_size=0: o pgbouncer do Neon (endpoint "-pooler") não
+    # aceita prepared statement do asyncpg. O timeout largo é pelo cold start
+    # do compute serverless, que passa do padrão do asyncpg e abortaria o seed
+    # por impaciência — seed é raro e manual, esperar não custa nada.
+    engine = create_async_engine(
+        database_url,
+        connect_args={"statement_cache_size": 0, "timeout": 180, "command_timeout": 180},
+    )
     async with AsyncSession(engine) as session:
         usuario = await _obter_usuario(session, args.email)
         exercicios_por_nome = await _upsert_exercicios_globais(session, dados["exercicios"])
