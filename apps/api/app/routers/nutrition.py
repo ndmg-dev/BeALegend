@@ -35,6 +35,17 @@ from app.services.insights import (
     gerar_insight_semanal,
     get_insight_provider,
 )
+from app.services.insights.fake_provider import FakeProvider
+
+
+def _insight_out(insight) -> NutritionInsightOut:
+    return NutritionInsightOut(
+        tipo=insight.tipo,
+        periodo_ref=insight.periodo_ref,
+        texto=insight.texto,
+        gerado_em=insight.gerado_em,
+        demo=insight.modelo == FakeProvider.MODELO,
+    )
 
 InsightProviderDep = Annotated[InsightProvider, Depends(get_insight_provider)]
 
@@ -164,7 +175,7 @@ async def nutrition_insight_today(
     insight = await gerar_insight_diario(session, user.id, dia, provider)
     if insight is None:
         return Response(status_code=204)
-    return NutritionInsightOut.model_validate(insight)
+    return _insight_out(insight)
 
 
 @router.get("/insight/weekly", response_model=NutritionInsightOut, responses=_SEM_INSIGHT)
@@ -180,4 +191,4 @@ async def nutrition_insight_weekly(
     insight = await gerar_insight_semanal(session, user.id, inicio, provider)
     if insight is None:
         return Response(status_code=204)
-    return NutritionInsightOut.model_validate(insight)
+    return _insight_out(insight)

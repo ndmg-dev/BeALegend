@@ -140,5 +140,6 @@ async def test_endpoint_usa_o_provider_injetado(client, monkeypatch):
         resp = await client.get("/nutrition/insight/today", headers=auth(token))
         assert resp.status_code == 200, resp.text
         assert resp.json()["texto"] == "Padrão bom, hidrate mais, mantenha o registro."
+        assert resp.json()["demo"] is False
     finally:
         app.dependency_overrides.pop(get_insight_provider, None)

@@ -103,6 +103,9 @@ async def test_today_gera_e_e_idempotente(client, insights_on, owner_engine):
     assert body["tipo"] == "diario"
     assert body["texto"]
     assert body["periodo_ref"] == str(date.today())
+    # Sem OPENAI_API_KEY no ambiente de teste, o provider é o fake — a tela
+    # precisa saber disso para não passar o texto de exemplo por leitura real.
+    assert body["demo"] is True
 
     second = await client.get("/nutrition/insight/today", headers=auth(token))
     assert second.status_code == 200

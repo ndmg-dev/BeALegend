@@ -12,6 +12,9 @@ const insightSchema = z.object({
   periodo_ref: z.string(),
   texto: z.string(),
   gerado_em: z.string(),
+  // Veio do FakeProvider (sem OPENAI_API_KEY configurada em produção) — a
+  // tela avisa em vez de deixar o texto genérico passar por leitura real.
+  demo: z.boolean(),
 });
 export type NutritionInsight = z.infer<typeof insightSchema>;
 

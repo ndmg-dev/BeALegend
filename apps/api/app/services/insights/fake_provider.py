@@ -10,6 +10,8 @@ MODELO = "fake-insight-1"
 
 
 class FakeProvider:
+    MODELO = MODELO
+
     async def gerar(self, req: InsightRequest) -> InsightResult:
         d = req.dados
         if req.tipo == "diario":

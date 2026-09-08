@@ -190,12 +190,20 @@ function InsightCard({ insight }: { insight: NutritionInsight }) {
   const quando = dias <= 0 ? 'hoje' : dias === 1 ? 'ontem' : `há ${dias} dias`;
   return (
     <Card className="border-l-[3px] border-l-nutricao-300 bg-nutricao-950/30">
-      <div className="mb-sp-2 flex items-baseline justify-between">
-        <h2 className="text-heading">
+      <div className="mb-sp-2 flex items-baseline justify-between gap-sp-2">
+        <h2 className="flex items-center gap-sp-2 text-heading">
           <span aria-hidden="true">✨ </span>
           {insight.tipo === 'semanal' ? 'Leitura da semana' : 'Observação do dia'}
+          {insight.demo ? (
+            <span
+              title="Sem chave da OpenAI configurada no servidor: este texto é um exemplo fixo, não uma leitura real dos seus dados."
+              className="rounded-full bg-surface-sunken px-sp-2 py-[2px] text-caption font-normal text-text-muted"
+            >
+              modo demonstração
+            </span>
+          ) : null}
         </h2>
-        <span className="text-caption text-text-muted">{quando}</span>
+        <span className="shrink-0 text-caption text-text-muted">{quando}</span>
       </div>
       <p className="text-body text-text-secondary">{insight.texto}</p>
     </Card>

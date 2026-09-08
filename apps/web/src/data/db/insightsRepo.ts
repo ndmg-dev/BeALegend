@@ -20,6 +20,7 @@ const cachedSchema = z.object({
   periodo_ref: z.string(),
   texto: z.string(),
   gerado_em: z.string(),
+  demo: z.boolean(),
 });
 
 export async function saveInsight(kind: Kind, insight: NutritionInsight | null): Promise<void> {

@@ -98,6 +98,10 @@ class NutritionInsightOut(BaseModel):
     periodo_ref: date
     texto: str
     gerado_em: datetime
+    #: True quando o texto veio do FakeProvider (sem OPENAI_API_KEY configurada
+    #: ou provider forçado em dev/teste) — a tela avisa que não é uma leitura
+    #: real da IA, em vez de deixar o usuário confiar num texto genérico.
+    demo: bool
 
 
 class FoodItemOut(BaseModel):
