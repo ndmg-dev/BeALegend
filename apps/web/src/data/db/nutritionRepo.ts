@@ -194,22 +194,3 @@ export async function supplements(): Promise<Supplement[]> {
     .filter((item) => item.deleted_at === null)
     .sort((a, b) => a.ordem - b.ordem);
 }
-
-/**
- * Peso mais recente — entra no cálculo das metas.
- *
- * Diferente do resto do plano, o peso não vive no Dexie: `body_metric` só
- * existe no servidor, então ele chega pelo endpoint do plano e fica cacheado
- * no store `meta` para a tela continuar calculando offline. Um peso de dias
- * atrás muda a meta em gramas — vale muito mais que não mostrar meta nenhuma.
- */
-const CHAVE_PESO = 'nutrition_peso_kg';
-
-export async function cachedWeightKg(): Promise<number | null> {
-  const linha = await db.meta.get(CHAVE_PESO);
-  return typeof linha?.valor === 'number' ? linha.valor : null;
-}
-
-export async function saveWeightKg(peso: number | null): Promise<void> {
-  await db.meta.put({ chave: CHAVE_PESO, valor: peso });
-}

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { FoodItem, MealSlot, MealSlotItem } from '@/data/db/schema';
+import { pesoAtualKg } from '@/data/db/bodyMetricRepo';
 import {
-  cachedWeightKg,
   dietPlan,
   foodItems,
   supplements,
@@ -27,7 +27,7 @@ export function DietPlan() {
     plano: await dietPlan(),
     alimentos: await foodItems(),
     suplementos: await supplements(),
-    peso: await cachedWeightKg(),
+    peso: await pesoAtualKg(),
   }), []);
 
   const metas = useMemo(

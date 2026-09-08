@@ -236,6 +236,18 @@ export const supplementSchema = z.object({
 });
 export type Supplement = z.infer<typeof supplementSchema>;
 
+/**
+ * Peso ou medida corporal — a régua contra a qual `nutrition_target` calcula
+ * proteína/gordura/calorias (ver `app/routers/nutrition.py`). `tipo='foto'`
+ * existe no servidor mas nenhuma tela do cliente escreve nem lê fotos ainda.
+ */
+export const bodyMetricSchema = z.object({
+  id: z.string().uuid(), user_id: z.string().uuid(), data: z.string(),
+  tipo: z.enum(['peso', 'circunferencia', 'foto']), valor: z.number().nullable(),
+  unidade: z.string().nullable(), ...syncFields,
+});
+export type BodyMetric = z.infer<typeof bodyMetricSchema>;
+
 // ---------------------------------------------------------------------------
 // Rotina e metas — progresso sempre derivado de métricas reais
 // ---------------------------------------------------------------------------
@@ -329,6 +341,7 @@ class BeALegendDB extends Dexie {
   habit_checkin!: EntityTable<HabitCheckin, 'id'>;
   goal!: EntityTable<Goal, 'id'>;
   achievement_unlock!: EntityTable<AchievementUnlock, 'id'>;
+  body_metric!: EntityTable<BodyMetric, 'id'>;
 
   constructor() {
     super('bealegend');
@@ -476,6 +489,38 @@ class BeALegendDB extends Dexie {
       nutrition_target: 'id, meal_plan_id, row_version, deleted_at',
       supplement: 'id, nome, ordem, row_version, deleted_at',
     });
+
+    // v8 — histórico de peso/medidas: body_metric passa a sincronizar com o
+    // cliente (antes só existia no servidor, lido por um endpoint dedicado).
+    this.version(8).stores({
+      exercise: 'id, nome, row_version, deleted_at',
+      outbox: 'id_local, entidade, registro_id, criado_em, tentativas',
+      meta: 'chave',
+      training_plan: 'id, row_version, deleted_at',
+      plan_day: 'id, plan_id, dia_semana, row_version, deleted_at',
+      plan_item: 'id, plan_day_id, ordem, row_version, deleted_at',
+      cardio_protocol: 'id, row_version, deleted_at',
+      session: 'id, data, status, plan_day_id, row_version, deleted_at',
+      set_log: 'id, session_id, exercise_id, concluido_em, row_version, deleted_at',
+      account: 'id, nome, tipo, row_version, deleted_at',
+      category: 'id, nome, tipo, pai_id, row_version, deleted_at',
+      recurring: 'id, proxima_ocorrencia, row_version, deleted_at',
+      finance_transaction: 'id, data, tipo, account_id, category_id, row_version, deleted_at',
+      budget: 'id, mes_ano, category_id, row_version, deleted_at',
+      meal_plan: 'id, ativo, row_version, deleted_at',
+      meal_slot: 'id, meal_plan_id, ordem, row_version, deleted_at',
+      meal_log: 'id, data, slot_id, horario, row_version, deleted_at',
+      water_log: 'id, data, registrado_em, row_version, deleted_at',
+      habit: 'id, nome, ativo, row_version, deleted_at',
+      habit_checkin: 'id, habit_id, data, concluido, row_version, deleted_at',
+      goal: 'id, status, dominio, metrica_ref, row_version, deleted_at',
+      achievement_unlock: 'id, achievement_key, row_version, deleted_at',
+      food_item: 'id, nome, row_version, deleted_at',
+      meal_slot_item: 'id, meal_slot_id, food_item_id, ordem, row_version, deleted_at',
+      nutrition_target: 'id, meal_plan_id, row_version, deleted_at',
+      supplement: 'id, nome, ordem, row_version, deleted_at',
+      body_metric: 'id, tipo, data, row_version, deleted_at',
+    });
   }
 }
 
@@ -527,6 +572,7 @@ export async function limparTudo(): Promise<void> {
     db.meal_slot_item,
     db.nutrition_target,
     db.supplement,
+    db.body_metric,
   ] as const;
   await db.transaction('rw', tabelas, async () => {
     await Promise.all(tabelas.map((t) => t.clear()));

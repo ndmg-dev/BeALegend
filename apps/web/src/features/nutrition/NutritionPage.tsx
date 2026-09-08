@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import type { MealLog, MealSlot } from '@/data/db/schema';
 import {
@@ -8,10 +8,8 @@ import {
   mealsOnDay,
   mealSlots,
   removeLastWater,
-  saveWeightKg,
   waterOnDay,
 } from '@/data/db/nutritionRepo';
-import { fetchDietPlan } from '@/data/api/dietPlan';
 import { DietPlan } from './DietPlan';
 import {
   fetchTodayInsight,
@@ -30,13 +28,19 @@ import { CategoryPill } from '@/ui/CategoryPill';
 import { Icon } from '@/ui/Icon';
 import { TextField } from '@/ui/TextField';
 
+// Sob demanda: só quem abre a aba Peso baixa o recharts (a maior
+// dependência do bundle) — mesma técnica do code-splitting de rotas.
+const WeightHistory = lazy(() =>
+  import('./WeightHistory').then((m) => ({ default: m.WeightHistory })),
+);
+
 const WATER_GOAL_ML = 2000;
 
 export function NutritionPage() {
   const user = useSession((state) => state.user);
   const day = user ? toLocalDate(new Date(), user.timezone) : '';
   const [selectedSlot, setSelectedSlot] = useState<MealSlot | null>(null);
-  const [aba, setAba] = useState<'hoje' | 'plano'>('hoje');
+  const [aba, setAba] = useState<'hoje' | 'plano' | 'peso'>('hoje');
   const data = useLiveQuery(async () => ({
     slots: await mealSlots(),
     meals: await mealsOnDay(day),
@@ -67,11 +71,6 @@ export function NutritionPage() {
       if (cancelled) return;
       if (diario.status === 'fulfilled') await saveInsight('diario', diario.value);
       if (semanal.status === 'fulfilled') await saveInsight('semanal', semanal.value);
-      // O peso vem daqui porque `body_metric` não é sincronizado para o Dexie;
-      // sem ele a meta de proteína/gordura não fecha. Falha de rede não é
-      // problema: o valor cacheado da última vez continua valendo.
-      const plano = await fetchDietPlan().catch(() => null);
-      if (!cancelled && plano) await saveWeightKg(plano.peso_kg);
     })();
     return () => { cancelled = true; };
   }, [user, day]);
@@ -91,14 +90,16 @@ export function NutritionPage() {
         <p className="text-label text-text-muted">
           {aba === 'plano'
             ? 'Seu plano alimentar'
-            : adherence.total
-              ? `${adherence.percentual}% de aderência hoje`
-              : 'Registre sem contar calorias'}
+            : aba === 'peso'
+              ? 'Peso e medidas'
+              : adherence.total
+                ? `${adherence.percentual}% de aderência hoje`
+                : 'Registre sem contar calorias'}
         </p>
       </header>
 
       <div role="tablist" aria-label="Comer" className="flex gap-sp-2">
-        {([['hoje', 'Hoje'], ['plano', 'Plano']] as const).map(([valor, rotulo]) => (
+        {([['hoje', 'Hoje'], ['plano', 'Plano'], ['peso', 'Peso']] as const).map(([valor, rotulo]) => (
           <CategoryPill
             key={valor}
             role="tab"
@@ -111,7 +112,11 @@ export function NutritionPage() {
         ))}
       </div>
 
-      {aba === 'plano' ? <DietPlan /> : (
+      {aba === 'peso' ? (
+        <Suspense fallback={<div role="status" className="text-text-muted">Carregando…</div>}>
+          <WeightHistory />
+        </Suspense>
+      ) : aba === 'plano' ? <DietPlan /> : (
       <>
       {insight ? <InsightCard insight={insight} /> : null}
 
