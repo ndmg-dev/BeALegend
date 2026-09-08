@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { budgetsInMonth, ensureFinanceDefaults, transactionsInMonth } from '@/data/db/financeRepo';
 import { ensureNutritionDefaults, mealsOnDay, mealSlots, waterOnDay } from '@/data/db/nutritionRepo';
-import { checkins, ensureRoutineDefaults, habits, setHabitCompleted } from '@/data/db/routineRepo';
+import {
+  checkins, ensureRoutineDefaults, habits, hasCompletedAnyRecord, setHabitCompleted,
+} from '@/data/db/routineRepo';
 import { diaDeHoje, itensDoDia } from '@/data/db/trainingRepo';
 import { sincronizar } from '@/data/sync/engine';
 import { formatMoney } from '@/domain/finance/money';
@@ -13,6 +15,7 @@ import { useSession } from '@/features/auth/useSession';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { DayStrip } from '@/ui/DayStrip';
+import { Icon, type IconName } from '@/ui/Icon';
 import { ProgressRing } from '@/ui/ProgressRing';
 import { Skeleton } from '@/ui/Skeleton';
 import { StreakBadge } from '@/ui/StreakBadge';
@@ -30,6 +33,7 @@ export function TodayPage() {
       slots: await mealSlots(), meals: await mealsOnDay(today), water: await waterOnDay(today),
       transactions: await transactionsInMonth(month), budgets: await budgetsInMonth(month),
       habits: await habits(), checkins: await checkins(),
+      engaged: await hasCompletedAnyRecord(),
     };
   }, [month, today, user?.timezone]);
 
@@ -100,6 +104,29 @@ export function TodayPage() {
         })}</div>
         <p className="mt-sp-3 text-label text-text-muted">{todayDone.filter((item) => due.some((habit) => habit.id === item.habit_id)).length} de {due.length} concluídos</p>
       </Card>
+
+      <div className="grid grid-cols-3 gap-sp-2">
+        <ShortcutCard to="/treino/progresso" icon="trending-up" label="Progresso" />
+        <ShortcutCard to="/conquistas" icon="trophy" label="Conquistas" />
+        <ShortcutCard to="/parceiro" icon="user" label="Parceiro" />
+      </div>
     </section>
+  );
+}
+
+/**
+ * Atalho compacto para telas que não moram na tab bar (só 5 slots, todos
+ * ocupados pelos domínios). "Hoje" é a landing page de verdade — quem nunca
+ * abre Metas ainda precisa achar Progresso/Conquistas/Parceiro.
+ */
+function ShortcutCard({ to, icon, label }: { to: string; icon: IconName; label: string }) {
+  return (
+    <Link
+      to={to}
+      className="flex flex-col items-center gap-sp-2 rounded-lg border border-border bg-surface p-sp-3 text-center shadow-sm"
+    >
+      <span aria-hidden="true" className="text-rotina-300"><Icon name={icon} size={24} /></span>
+      <span className="text-label text-text-secondary">{label}</span>
+    </Link>
   );
 }

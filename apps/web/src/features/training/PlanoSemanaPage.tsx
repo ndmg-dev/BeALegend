@@ -63,14 +63,22 @@ export function PlanoSemanaPage() {
 
   return (
     <section className="mx-auto max-w-2xl">
-      <header className="mb-sp-4 flex items-center justify-between">
+      <header className="mb-sp-4 flex items-center justify-between gap-sp-3">
         <h1 className="text-title">Treino</h1>
-        <Link
-          to="/treino/progresso"
-          className="flex min-h-tap items-center gap-sp-1 text-label text-text-secondary"
-        >
-          <Icon name="trending-up" size={20} /> Progresso
-        </Link>
+        <div className="flex items-center gap-sp-4">
+          <Link
+            to="/treino/exercicios"
+            className="flex min-h-tap items-center gap-sp-1 text-label text-text-secondary"
+          >
+            <Icon name="list-checks" size={20} /> Exercícios
+          </Link>
+          <Link
+            to="/treino/progresso"
+            className="flex min-h-tap items-center gap-sp-1 text-label text-text-secondary"
+          >
+            <Icon name="trending-up" size={20} /> Progresso
+          </Link>
+        </div>
       </header>
 
       {dias === undefined ? (
