@@ -12,11 +12,37 @@ import {
 } from 'recharts';
 import { listar } from '@/data/db/exerciseRepo';
 import { exerciciosComHistorico, historicoDoExercicio } from '@/data/db/trainingSessionRepo';
-import { progressoPorSessao, variacaoDeCarga } from '@/domain/training/progressChart';
+import { progressoPorSessao, variacaoDeCarga, variacaoDeVolume } from '@/domain/training/progressChart';
 import { useSession } from '@/features/auth/useSession';
 import { Card } from '@/ui/Card';
+import { CategoryPill } from '@/ui/CategoryPill';
 import { EmptyState } from '@/ui/EmptyState';
 import { Icon } from '@/ui/Icon';
+
+type Metrica = 'carga' | 'volume';
+
+const METRICA: Record<Metrica, {
+  titulo: string;
+  campo: 'cargaMaxima' | 'volumeTotal';
+  unidade: string;
+  rotuloTooltip: string;
+  rotuloCartao: string;
+}> = {
+  carga: {
+    titulo: 'Carga máxima',
+    campo: 'cargaMaxima',
+    unidade: 'kg',
+    rotuloTooltip: 'Carga máxima',
+    rotuloCartao: 'Carga atual',
+  },
+  volume: {
+    titulo: 'Volume total',
+    campo: 'volumeTotal',
+    unidade: 'kg',
+    rotuloTooltip: 'Volume (carga × reps)',
+    rotuloCartao: 'Volume da última sessão',
+  },
+};
 
 /**
  * Progresso de carga por exercício — carga máxima do dia ao longo do tempo.
@@ -29,6 +55,7 @@ export function ProgressPage() {
   const user = useSession((s) => s.user);
   const timezone = user?.timezone ?? 'UTC';
   const [exercicioId, setExercicioId] = useState<string | null>(null);
+  const [metrica, setMetrica] = useState<Metrica>('carga');
 
   const dados = useLiveQuery(async () => {
     const [exercicios, comHistorico] = await Promise.all([listar(), exerciciosComHistorico()]);
@@ -45,8 +72,12 @@ export function ProgressPage() {
     return progressoPorSessao(logs, timezone);
   }, [selecionado, timezone], []);
 
-  const variacao = useMemo(() => variacaoDeCarga(pontos ?? []), [pontos]);
+  const variacao = useMemo(
+    () => (metrica === 'carga' ? variacaoDeCarga(pontos ?? []) : variacaoDeVolume(pontos ?? [])),
+    [pontos, metrica],
+  );
   const exercicioAtual = dados?.exercicios.find((ex) => ex.id === selecionado);
+  const config = METRICA[metrica];
 
   return (
     <section className="mx-auto flex max-w-2xl flex-col gap-sp-5">
@@ -60,7 +91,7 @@ export function ProgressPage() {
         </Link>
         <div>
           <h1 className="text-title">Progresso</h1>
-          <p className="text-label text-text-muted">Carga máxima por sessão, exercício a exercício</p>
+          <p className="text-label text-text-muted">Carga e volume por sessão, exercício a exercício</p>
         </div>
       </header>
 
@@ -95,11 +126,25 @@ export function ProgressPage() {
             </EmptyState>
           ) : (
             <>
+              <div role="tablist" aria-label="Métrica" className="flex gap-sp-2">
+                {(Object.keys(METRICA) as Metrica[]).map((chave) => (
+                  <CategoryPill
+                    key={chave}
+                    role="tab"
+                    aria-selected={metrica === chave}
+                    selected={metrica === chave}
+                    onClick={() => setMetrica(chave)}
+                  >
+                    {METRICA[chave].titulo}
+                  </CategoryPill>
+                ))}
+              </div>
+
               <Card className="flex items-center justify-between gap-sp-4">
                 <div>
-                  <p className="text-label text-text-muted">Carga atual</p>
+                  <p className="text-label text-text-muted">{config.rotuloCartao}</p>
                   <p className="text-title tabular-nums">
-                    {pontos[pontos.length - 1]?.cargaMaxima} kg
+                    {pontos[pontos.length - 1]?.[config.campo]} {config.unidade}
                   </p>
                 </div>
                 {variacao !== null ? (
@@ -115,15 +160,19 @@ export function ProgressPage() {
                       }`}
                     >
                       {variacao > 0 ? '+' : ''}
-                      {variacao} kg
+                      {variacao} {config.unidade}
                     </p>
                   </div>
                 ) : null}
               </Card>
 
               <Card>
-                <h2 className="mb-sp-3 text-heading">Carga máxima</h2>
-                <div className="h-56 w-full" role="img" aria-label={`Gráfico de carga máxima de ${exercicioAtual?.nome ?? ''} ao longo do tempo`}>
+                <h2 className="mb-sp-3 text-heading">{config.titulo}</h2>
+                <div
+                  className="h-56 w-full"
+                  role="img"
+                  aria-label={`Gráfico de ${config.titulo.toLowerCase()} de ${exercicioAtual?.nome ?? ''} ao longo do tempo`}
+                >
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={pontos.map((p) => ({ ...p }))}>
                       <CartesianGrid strokeDasharray="3 3" className="stroke-border-subtle" />
@@ -132,14 +181,14 @@ export function ProgressPage() {
                         tick={{ fontSize: 11 }}
                         tickFormatter={(data: string) => data.slice(5).replace('-', '/')}
                       />
-                      <YAxis tick={{ fontSize: 11 }} width={36} unit="kg" />
+                      <YAxis tick={{ fontSize: 11 }} width={36} unit={config.unidade} />
                       <Tooltip
-                        formatter={(value: number) => [`${value} kg`, 'Carga máxima']}
+                        formatter={(value: number) => [`${value} ${config.unidade}`, config.rotuloTooltip]}
                         labelFormatter={(data: string) => data.split('-').reverse().join('/')}
                       />
                       <Line
                         type="monotone"
-                        dataKey="cargaMaxima"
+                        dataKey={config.campo}
                         stroke="var(--tr-400)"
                         strokeWidth={2}
                         dot={{ r: 3 }}

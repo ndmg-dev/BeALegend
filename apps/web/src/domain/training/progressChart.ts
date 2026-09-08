@@ -44,13 +44,25 @@ export function progressoPorSessao(
 }
 
 /**
- * Variação entre o primeiro e o último ponto — o número que a tela destaca
- * ("+12,5 kg desde o início"). `null` com menos de 2 pontos: não há variação
- * para mostrar, e diferença de zero pontos não é o mesmo que "sem progresso".
+ * Variação entre o primeiro e o último ponto, num campo escolhido — o número
+ * que a tela destaca ("+12,5 kg desde o início"). `null` com menos de 2
+ * pontos: não há variação para mostrar, e diferença de zero pontos não é o
+ * mesmo que "sem progresso".
  */
-export function variacaoDeCarga(pontos: readonly PontoDeProgresso[]): number | null {
+function variacao(
+  pontos: readonly PontoDeProgresso[],
+  campo: 'cargaMaxima' | 'volumeTotal',
+): number | null {
   if (pontos.length < 2) return null;
-  const primeiro = pontos[0]?.cargaMaxima ?? 0;
-  const ultimo = pontos[pontos.length - 1]?.cargaMaxima ?? 0;
+  const primeiro = pontos[0]?.[campo] ?? 0;
+  const ultimo = pontos[pontos.length - 1]?.[campo] ?? 0;
   return ultimo - primeiro;
+}
+
+export function variacaoDeCarga(pontos: readonly PontoDeProgresso[]): number | null {
+  return variacao(pontos, 'cargaMaxima');
+}
+
+export function variacaoDeVolume(pontos: readonly PontoDeProgresso[]): number | null {
+  return variacao(pontos, 'volumeTotal');
 }

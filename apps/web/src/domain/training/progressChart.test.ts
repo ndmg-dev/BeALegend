@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { progressoPorSessao, variacaoDeCarga } from './progressChart';
+import { progressoPorSessao, variacaoDeCarga, variacaoDeVolume } from './progressChart';
 
 const TZ = 'America/Sao_Paulo';
 
@@ -63,5 +63,30 @@ describe('variacaoDeCarga', () => {
       { data: '2026-01-08', cargaMaxima: 80, volumeTotal: 800 },
     ];
     expect(variacaoDeCarga(pontos)).toBe(-10);
+  });
+});
+
+describe('variacaoDeVolume', () => {
+  it('null com menos de dois pontos', () => {
+    expect(variacaoDeVolume([])).toBeNull();
+    expect(variacaoDeVolume([{ data: '2026-01-01', cargaMaxima: 80, volumeTotal: 800 }])).toBeNull();
+  });
+
+  it('diferença de volume entre o primeiro e o último ponto', () => {
+    const pontos = [
+      { data: '2026-01-01', cargaMaxima: 80, volumeTotal: 800 },
+      { data: '2026-01-08', cargaMaxima: 85, volumeTotal: 1200 },
+    ];
+    expect(variacaoDeVolume(pontos)).toBe(400);
+  });
+
+  it('carga e volume variam de forma independente', () => {
+    // Menos carga, mais reps: volume sobe mesmo com a carga caindo.
+    const pontos = [
+      { data: '2026-01-01', cargaMaxima: 100, volumeTotal: 1000 },
+      { data: '2026-01-08', cargaMaxima: 90, volumeTotal: 1080 },
+    ];
+    expect(variacaoDeCarga(pontos)).toBe(-10);
+    expect(variacaoDeVolume(pontos)).toBe(80);
   });
 });
