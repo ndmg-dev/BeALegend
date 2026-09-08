@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { aguardarServiceWorkerAtivo } from './helpers';
 
 const PASSWORD = 'senha-de-teste-1';
 
@@ -13,6 +14,7 @@ test('registra refeição e água offline e preserva após reload', async ({ pag
   await page.getByRole('link', { name: 'Comer' }).click();
   const lunch = page.getByText('Almoço', { exact: true }).locator('..').locator('..');
   await expect(lunch.getByRole('button', { name: 'Registrar' })).toBeVisible({ timeout: 15_000 });
+  await aguardarServiceWorkerAtivo(page);
 
   await context.setOffline(true);
   await lunch.getByRole('button', { name: 'Registrar' }).click();

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { aguardarServiceWorkerAtivo } from './helpers';
 
 const PASSWORD = 'senha-de-teste-1';
 
@@ -13,6 +14,7 @@ test('painel e metas mantêm check-in offline após reload', async ({ page, cont
   const reading = page.getByRole('checkbox', { name: /Ler 20 min/ });
   await expect(reading).toBeVisible({ timeout: 15_000 });
   await expect(page.getByRole('heading', { name: 'Hábitos pendentes' })).toBeVisible();
+  await aguardarServiceWorkerAtivo(page);
 
   await context.setOffline(true);
   await reading.evaluate((element) => element.scrollIntoView({ block: 'center' }));

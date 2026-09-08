@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { aguardarServiceWorkerAtivo } from './helpers';
 
 /**
  * O terceiro fluxo crítico: registro feito sem rede que chega íntegro ao
@@ -83,6 +84,7 @@ test('registro feito offline chega íntegro ao servidor quando a rede volta', as
 test('o registro sobrevive ao reload feito ainda offline', async ({ page, context }) => {
   await criarConta(page);
   await page.goto('/treino/exercicios');
+  await aguardarServiceWorkerAtivo(page);
 
   await context.setOffline(true);
   await adicionar(page, 'Remada curvada');
