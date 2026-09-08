@@ -64,17 +64,18 @@ test('executa uma sessão de força completa a partir do plano semeado', async (
   await criarConta(page, email);
   rodarSeed(email);
 
-  await page.getByRole('link', { name: 'Treino' }).click();
+  await page.getByRole('link', { name: 'Treino', exact: true }).click();
   await expect(page.getByText('Segunda')).toBeVisible({ timeout: 15_000 });
 
-  // Segunda = Força A, 5 exercícios (planilha: supino, desenvolvimento,
-  // elevação lateral, flexões, extensão de tríceps).
+  // Segunda = Força A, 6 exercícios (planilha StrengthFlow: supino reto de
+  // estação, supino inclinado, voador de estação, desenvolvimento sentado,
+  // elevação lateral, extensão de tríceps).
   await page
     .getByTestId('plan-day-segunda')
     .getByRole('button', { name: 'Iniciar' })
     .click();
 
-  await expect(page.getByText('Exercício 1 de 5')).toBeVisible();
+  await expect(page.getByText('Exercício 1 de 6')).toBeVisible();
 
   // Primeiro exercício: 4 séries de 8–12 reps. Sobe os reps ao topo da faixa
   // para acionar a sugestão de progressão na última série.
@@ -98,7 +99,7 @@ test('executa uma sessão de força completa a partir do plano semeado', async (
   await expect(page.getByText('Sem anilha menor?')).toBeVisible();
 
   await page.getByRole('button', { name: 'Próximo exercício' }).click();
-  await expect(page.getByText('Exercício 2 de 5')).toBeVisible();
+  await expect(page.getByText('Exercício 2 de 6')).toBeVisible();
 });
 
 test('a sessão sobrevive a um reload no meio do treino', async ({ page }) => {
@@ -106,14 +107,14 @@ test('a sessão sobrevive a um reload no meio do treino', async ({ page }) => {
   await criarConta(page, email);
   rodarSeed(email);
 
-  await page.getByRole('link', { name: 'Treino' }).click();
+  await page.getByRole('link', { name: 'Treino', exact: true }).click();
   await expect(page.getByText('Segunda')).toBeVisible({ timeout: 15_000 });
   await page
     .getByTestId('plan-day-segunda')
     .getByRole('button', { name: 'Iniciar' })
     .click();
 
-  await expect(page.getByText('Exercício 1 de 5')).toBeVisible();
+  await expect(page.getByText('Exercício 1 de 6')).toBeVisible();
   await page.getByRole('button', { name: 'Série concluída' }).click();
   await page.getByRole('button', { name: 'Pular descanso' }).click();
   await expect(page.getByText('Série 2 de 4')).toBeVisible();

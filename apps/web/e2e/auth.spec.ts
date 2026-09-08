@@ -54,7 +54,7 @@ test('navegação entre os cinco destinos funciona depois do login', async ({ pa
   await expect(page).toHaveURL(/\/hoje/);
 
   for (const destino of ['Treino', 'Comer', 'Grana', 'Metas']) {
-    await page.getByRole('link', { name: destino }).click();
+    await page.getByRole('link', { name: destino, exact: true }).click();
     await expect(page.getByRole('heading', { name: destino })).toBeVisible();
   }
 });
