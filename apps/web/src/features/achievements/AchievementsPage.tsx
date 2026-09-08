@@ -131,7 +131,7 @@ function TrophyCard({
       )}
     >
       <Icon
-        name="trophy"
+        name={secretaOculta ? 'trophy' : a.icone}
         size={24}
         className={cn('mt-sp-1 shrink-0', unlocked ? TIER_TEXT[a.tier] : 'text-text-muted')}
       />

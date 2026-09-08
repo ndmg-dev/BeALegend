@@ -29,7 +29,7 @@ const VISIVEL_MS = 5000;
 
 /**
  * Comemoração de conquista — um troféu por vez, some sozinho ou ao toque.
- * Montado no AppShell. Ícones de tier vêm na fase 6; por ora é texto.
+ * Montado no AppShell.
  */
 export function CelebrationToast() {
   const fila = useCelebrationQueue((s) => s.fila);
@@ -63,7 +63,7 @@ export function CelebrationToast() {
           TIER_BORDER[conquista.tier],
         )}
       >
-        <Icon name="trophy" size={28} className={cn('mt-sp-1 shrink-0', TIER_TEXT[conquista.tier])} />
+        <Icon name={conquista.icone} size={28} className={cn('mt-sp-1 shrink-0', TIER_TEXT[conquista.tier])} />
         <span className="flex min-w-0 flex-col gap-sp-1">
           <span className="text-caption uppercase tracking-wide text-text-muted">
             Conquista desbloqueada ·{' '}

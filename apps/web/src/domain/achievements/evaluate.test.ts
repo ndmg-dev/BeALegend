@@ -11,7 +11,7 @@ const A = (over: Partial<Achievement>): Achievement => ({
   tier: 'bronze',
   metrica: 'training.sessions.total',
   alvo: 1,
-  icone: 'i',
+  icone: 'star',
   ...over,
 });
 

@@ -11,6 +11,30 @@ import type { Metric } from './metrics';
 
 export type Tier = 'bronze' | 'prata' | 'ouro' | 'platina';
 
+/** Só os nomes do sprite usados no catálogo — não o `IconName` inteiro, para
+ * o domínio continuar sem depender de `ui/`. A tela de conquistas confia
+ * nessa lista bater com `IconName`; o typecheck do `ui/Icon.tsx` garante. */
+export type AchievementIcon =
+  | 'dumbbell'
+  | 'flame'
+  | 'calendar-check'
+  | 'trending-up'
+  | 'sunrise'
+  | 'list-checks'
+  | 'utensils'
+  | 'target'
+  | 'droplet'
+  | 'clipboard-check'
+  | 'wallet'
+  | 'piggy-bank'
+  | 'receipt'
+  | 'sprout'
+  | 'trees'
+  | 'check-circle'
+  | 'star'
+  | 'layout-grid'
+  | 'trophy';
+
 export interface Achievement {
   key: string;
   titulo: string;
@@ -20,7 +44,7 @@ export interface Achievement {
   /** Limiar: desbloqueia quando o valor da métrica alcança este número. > 0. */
   alvo: number;
   /** Nome no sprite de ícones. */
-  icone: string;
+  icone: AchievementIcon;
   /** Fica oculta (silhueta + "???") até desbloquear. */
   secreta?: boolean;
 }

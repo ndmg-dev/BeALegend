@@ -53,7 +53,24 @@ export type IconName =
   | 'lock'
   | 'eye'
   | 'eye-off'
-  | 'trophy';
+  | 'trophy'
+  | 'dumbbell'
+  | 'flame'
+  | 'calendar-check'
+  | 'trending-up'
+  | 'sunrise'
+  | 'list-checks'
+  | 'utensils'
+  | 'target'
+  | 'droplet'
+  | 'clipboard-check'
+  | 'wallet'
+  | 'piggy-bank'
+  | 'receipt'
+  | 'sprout'
+  | 'trees'
+  | 'star'
+  | 'layout-grid';
 
 // 16/24/28/40 são os quatro tamanhos-âncora da especificação; 20 e 22 vêm
 // do próprio mockup da tela de Entrar (ícone do campo e domínios no rodapé).
