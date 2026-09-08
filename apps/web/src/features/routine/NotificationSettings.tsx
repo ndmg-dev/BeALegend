@@ -30,7 +30,20 @@ export function NotificationSettings({ eligible }: { eligible: boolean }) {
     return () => window.removeEventListener('online', load);
   }, [eligible]);
 
-  if (!eligible && !config?.subscribed) return null;
+  // Esconder o card inteiro escondia também que a opção existe — pedir
+  // permissão cedo demais é o problema real (nunca chamamos
+  // requestPermission() aqui), então mostrar o card "bloqueado" resolve a
+  // descoberta sem violar esse princípio.
+  if (!eligible && !config?.subscribed) {
+    return (
+      <Card>
+        <h2 className="text-heading">Lembretes</h2>
+        <p className="mt-sp-1 text-label text-text-muted">
+          Disponível depois do seu primeiro treino, refeição, gasto ou hábito registrado.
+        </p>
+      </Card>
+    );
+  }
 
   async function enable() {
     if (!config?.configured) return;
