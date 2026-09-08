@@ -130,6 +130,17 @@ export function GoalsPage() {
         <span aria-hidden="true" className="text-text-muted"><Icon name="chevron-right" size={24} /></span>
       </Link>
 
+      <Link
+        to="/parceiro"
+        className="flex min-h-tap items-center justify-between gap-sp-3 rounded-lg border border-border bg-surface p-sp-4 shadow-sm"
+      >
+        <div>
+          <h2 className="text-heading">Parceiro</h2>
+          <p className="text-label text-text-muted">Acompanhem o progresso um do outro</p>
+        </div>
+        <span aria-hidden="true" className="text-text-muted"><Icon name="chevron-right" size={24} /></span>
+      </Link>
+
       <Card className="border-l-[3px] border-l-rotina-400">
         <h2 className="mb-sp-3 text-heading">Hábitos de hoje</h2>
         {due.length ? <div className="flex flex-col gap-sp-2">{due.map((habit) => {

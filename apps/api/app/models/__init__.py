@@ -15,6 +15,7 @@ from app.models.nutrition import (
     Supplement,
     WaterLog,
 )
+from app.models.partner import PartnerLink
 from app.models.routine import Goal, Habit, HabitCheckin
 from app.models.training import (
     BodyMetric,
@@ -52,6 +53,7 @@ __all__ = [
     "NotificationPreference",
     "NutritionInsight",
     "NutritionTarget",
+    "PartnerLink",
     "PlanDay",
     "PlanItem",
     "PushSubscription",
