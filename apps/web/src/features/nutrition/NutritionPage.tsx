@@ -7,6 +7,7 @@ import {
   ensureNutritionDefaults,
   mealsOnDay,
   mealSlots,
+  removeLastWater,
   saveWeightKg,
   waterOnDay,
 } from '@/data/db/nutritionRepo';
@@ -26,6 +27,7 @@ import { photoToDataUrl } from '@/platform/camera';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { CategoryPill } from '@/ui/CategoryPill';
+import { Icon } from '@/ui/Icon';
 import { TextField } from '@/ui/TextField';
 
 const WATER_GOAL_ML = 2000;
@@ -141,12 +143,24 @@ export function NutritionPage() {
       ) : null}
 
       <Card>
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between gap-sp-3">
           <div>
             <h2 className="text-heading">Água</h2>
             <p className="text-label text-text-muted">Meta visual de {WATER_GOAL_ML / 1000} L</p>
           </div>
-          <strong className="text-subhead text-nutricao-300">{waterMl} ml</strong>
+          <div className="flex shrink-0 items-center gap-sp-2">
+            <strong className="text-subhead text-nutricao-300">{waterMl} ml</strong>
+            {data.water.length > 0 ? (
+              <button
+                type="button"
+                aria-label="Desfazer último registro de água"
+                onClick={() => void removeLastWater(day).then(() => sincronizar())}
+                className="grid min-h-tap min-w-tap place-items-center text-text-muted"
+              >
+                <Icon name="undo" size={20} />
+              </button>
+            ) : null}
+          </div>
         </div>
         <div className="my-sp-4 h-2 overflow-hidden rounded-full bg-surface-sunken">
           <div

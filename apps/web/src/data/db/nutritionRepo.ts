@@ -127,6 +127,24 @@ export async function addWater(day: string, ml: number, userId: string): Promise
 }
 
 /**
+ * Desfaz o registro de água mais recente do dia. `water_log` não é
+ * append-only no registry de sync (`app/sync/registry.py`) — diferente de
+ * `set_log`, um copo registrado errado pode ser apagado de verdade.
+ */
+export async function removeLastWater(day: string): Promise<void> {
+  const logs = await waterOnDay(day);
+  const ultimo = logs.reduce<WaterLog | null>(
+    (mais_recente, item) => (!mais_recente || item.registrado_em > mais_recente.registrado_em ? item : mais_recente),
+    null,
+  );
+  if (!ultimo) return;
+  await db.transaction('rw', db.water_log, db.outbox, async () => {
+    await db.water_log.delete(ultimo.id);
+    await enfileirar({ entidade: 'water_log', operacao: 'delete', registroId: ultimo.id });
+  });
+}
+
+/**
  * O plano alimentar como a tela precisa: refeições, o que compõe cada uma,
  * a base de alimentos e a meta.
  *
