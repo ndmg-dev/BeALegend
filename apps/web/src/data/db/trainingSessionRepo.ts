@@ -173,3 +173,23 @@ export async function seriesDaSessao(sessionId: string, exerciseId: string): Pro
     .filter((l) => l.exercise_id === exerciseId && l.deleted_at === null)
     .sort((a, b) => a.numero_serie - b.numero_serie);
 }
+
+/**
+ * Todas as séries já registradas deste exercício, de qualquer sessão —
+ * a matéria-prima do gráfico de progresso. `set_log` chega inteiro pelo
+ * delta do sync (é append-only, nunca somente-leitura), então isto funciona
+ * offline e já traz o histórico de outros dispositivos.
+ */
+export async function historicoDoExercicio(exerciseId: string): Promise<SetLog[]> {
+  const logs = await db.set_log.where('exercise_id').equals(exerciseId).toArray();
+  return logs
+    .filter((l) => l.deleted_at === null)
+    .sort((a, b) => a.concluido_em.localeCompare(b.concluido_em));
+}
+
+/** Ids de exercício com ao menos uma série registrada — para o seletor da
+ * tela de progresso não listar exercícios sem histórico nenhum. */
+export async function exerciciosComHistorico(): Promise<Set<string>> {
+  const logs = await db.set_log.filter((l) => l.deleted_at === null).toArray();
+  return new Set(logs.map((l) => l.exercise_id));
+}

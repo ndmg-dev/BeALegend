@@ -8,10 +8,12 @@ import { Providers } from './providers';
 import { ExecutorPage } from '@/features/training/ExecutorPage';
 import { ExercisesPage } from '@/features/training/ExercisesPage';
 import { PlanoSemanaPage } from '@/features/training/PlanoSemanaPage';
+import { ProgressPage } from '@/features/training/ProgressPage';
 import { FinancePage } from '@/features/finance/FinancePage';
 import { NutritionPage } from '@/features/nutrition/NutritionPage';
 import { GoalsPage } from '@/features/routine/GoalsPage';
 import { AchievementsPage } from '@/features/achievements/AchievementsPage';
+import { PartnersPage } from '@/features/partners/PartnersPage';
 import { TodayPage } from '@/features/dashboard/TodayPage';
 import { useServiceWorker } from './useServiceWorker';
 import { iniciarSync } from '@/data/sync/engine';
@@ -48,11 +50,13 @@ export function App() {
             <Route path="/hoje" element={<TodayPage />} />
             <Route path="/treino" element={<PlanoSemanaPage />} />
             <Route path="/treino/exercicios" element={<ExercisesPage />} />
+            <Route path="/treino/progresso" element={<ProgressPage />} />
             <Route path="/treino/:planDayId" element={<ExecutorPage />} />
             <Route path="/comer" element={<NutritionPage />} />
             <Route path="/grana" element={<FinancePage />} />
             <Route path="/metas" element={<GoalsPage />} />
             <Route path="/conquistas" element={<AchievementsPage />} />
+            <Route path="/parceiro" element={<PartnersPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/hoje" replace />} />
         </Routes>

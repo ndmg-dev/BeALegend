@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { sincronizar } from '@/data/sync/engine';
 import type { PlanDay } from '@/data/db/schema';
 import { diasDoPlano, planoAtivo } from '@/data/db/trainingRepo';
@@ -10,6 +10,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { cn } from '@/ui/cn';
 import { EmptyState } from '@/ui/EmptyState';
+import { Icon } from '@/ui/Icon';
 
 const NOME_DIA: Record<PlanDay['dia_semana'], string> = {
   segunda: 'Segunda',
@@ -62,7 +63,15 @@ export function PlanoSemanaPage() {
 
   return (
     <section className="mx-auto max-w-2xl">
-      <h1 className="mb-sp-4 text-title">Treino</h1>
+      <header className="mb-sp-4 flex items-center justify-between">
+        <h1 className="text-title">Treino</h1>
+        <Link
+          to="/treino/progresso"
+          className="flex min-h-tap items-center gap-sp-1 text-label text-text-secondary"
+        >
+          <Icon name="trending-up" size={20} /> Progresso
+        </Link>
+      </header>
 
       {dias === undefined ? (
         <div role="status" aria-live="polite" className="text-text-muted">
