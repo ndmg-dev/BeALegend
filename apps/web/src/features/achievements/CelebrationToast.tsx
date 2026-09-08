@@ -25,7 +25,7 @@ const TIER_TEXT: Record<Tier, string> = {
   platina: 'text-tier-platina',
 };
 
-const VISIVEL_MS = 5000;
+const VISIVEL_MS = 8000;
 
 /**
  * Comemoração de conquista — um troféu por vez, some sozinho ou ao toque.
