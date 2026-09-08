@@ -75,6 +75,8 @@ export function TodayPage() {
         <StreakBadge days={streak} />
       </header>
 
+      {!data.engaged ? <WelcomeChecklist /> : null}
+
       <DayStrip days={week} today={today} stateFor={(day) => {
         const expected = data.habits.filter((habit) => isHabitDue(habit.frequencia_rrule, day));
         const done = data.checkins.filter((item) => item.data === day && item.concluido && expected.some((habit) => habit.id === item.habit_id));
@@ -111,6 +113,42 @@ export function TodayPage() {
         <ShortcutCard to="/parceiro" icon="user" label="Parceiro" />
       </div>
     </section>
+  );
+}
+
+const PRIMEIROS_PASSOS: { to: string; icon: IconName; label: string; cor: string }[] = [
+  { to: '/treino', icon: 'tab-treino', label: 'Registrar um treino', cor: 'text-treino-300' },
+  { to: '/comer', icon: 'tab-comer', label: 'Registrar uma refeição', cor: 'text-nutricao-300' },
+  { to: '/grana', icon: 'tab-grana', label: 'Lançar um gasto', cor: 'text-financas-300' },
+  { to: '/metas', icon: 'tab-metas', label: 'Criar um hábito', cor: 'text-rotina-300' },
+];
+
+/**
+ * Some sozinho assim que `hasCompletedAnyRecord()` vira `true` — mesma
+ * função pura que já gate-keeps o card de Lembretes. Sem tela vazia demais
+ * no primeiro uso: aponta o próximo passo em vez de deixar o usuário
+ * descobrir sozinho por onde começar.
+ */
+function WelcomeChecklist() {
+  return (
+    <Card className="border-l-[3px] border-l-rotina-400">
+      <h2 className="text-heading">Bem-vindo!</h2>
+      <p className="mt-sp-1 text-label text-text-muted">
+        Comece registrando algo — qualquer um destes:
+      </p>
+      <div className="mt-sp-3 grid grid-cols-2 gap-sp-2">
+        {PRIMEIROS_PASSOS.map((passo) => (
+          <Link
+            key={passo.to}
+            to={passo.to}
+            className="flex min-h-tap items-center gap-sp-2 rounded-md border border-border-subtle px-sp-3 py-sp-2 text-label text-text-secondary"
+          >
+            <span aria-hidden="true" className={passo.cor}><Icon name={passo.icon} size={20} /></span>
+            {passo.label}
+          </Link>
+        ))}
+      </div>
+    </Card>
   );
 }
 
