@@ -78,3 +78,80 @@ async def test_logout_invalida_o_refresh(client):
     await register(client)
     assert (await client.post("/auth/logout")).status_code == 204
     assert (await client.post("/auth/refresh")).status_code == 401
+
+
+async def test_export_sem_dados_devolve_conta_e_dados_vazio(client):
+    email, token = await register(client)
+    resp = await client.get("/auth/export", headers=auth(token))
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["conta"]["email"] == email
+    assert body["dados"] == {}
+    assert "exportado_em" in body
+
+
+async def test_export_traz_dados_proprios_sem_catalogo_global(client, owner_engine):
+    import uuid
+
+    from sqlalchemy import text
+
+    _, token = await register(client)
+    await client.post(
+        "/sync/batch",
+        json={
+            "operations": [
+                {
+                    "idempotency_key": f"habit-{uuid.uuid4()}",
+                    "entidade": "habit",
+                    "operacao": "create",
+                    "id": str(uuid.uuid4()),
+                    "payload": {
+                        "nome": "Ler", "frequencia_rrule": "FREQ=DAILY", "meta_por_semana": 7,
+                    },
+                }
+            ]
+        },
+        headers=auth(token),
+    )
+    async with owner_engine.begin() as conn:
+        await conn.execute(
+            text(
+                "INSERT INTO exercise (id, user_id, is_global, nome, grupo_muscular) "
+                "VALUES (:id, NULL, true, 'Supino global', ARRAY['peito']::varchar[])"
+            ),
+            {"id": uuid.uuid4()},
+        )
+
+    resp = await client.get("/auth/export", headers=auth(token))
+    assert resp.status_code == 200, resp.text
+    dados = resp.json()["dados"]
+    assert len(dados["habit"]) == 1
+    assert dados["habit"][0]["nome"] == "Ler"
+    # O catálogo global (is_global=true, user_id NULL) não é "meu dado".
+    assert "exercise" not in dados
+
+
+async def test_export_isolado_por_usuario(client):
+    import uuid
+
+    _, token_a = await register(client)
+    _, token_b = await register(client)
+    await client.post(
+        "/sync/batch",
+        json={
+            "operations": [
+                {
+                    "idempotency_key": f"habit-{uuid.uuid4()}",
+                    "entidade": "habit",
+                    "operacao": "create",
+                    "id": str(uuid.uuid4()),
+                    "payload": {
+                        "nome": "Só de A", "frequencia_rrule": "FREQ=DAILY", "meta_por_semana": 7,
+                    },
+                }
+            ]
+        },
+        headers=auth(token_a),
+    )
+    resp = await client.get("/auth/export", headers=auth(token_b))
+    assert resp.json()["dados"] == {}

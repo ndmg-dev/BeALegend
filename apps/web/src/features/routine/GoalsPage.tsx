@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
+import { exportarDados } from '@/data/api/account';
 import { CATALOG } from '@/domain/achievements/catalog';
 import { db, type Habit } from '@/data/db/schema';
 import {
@@ -192,7 +193,49 @@ export function GoalsPage() {
       </Card>
 
       <NotificationSettings eligible={data.engaged} />
+      <ExportarDadosCard />
     </section>
+  );
+}
+
+function ExportarDadosCard() {
+  const [busy, setBusy] = useState(false);
+  const [erro, setErro] = useState<string>();
+
+  async function baixar() {
+    setBusy(true);
+    setErro(undefined);
+    try {
+      const dados = await exportarDados();
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bealegend-dados-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setErro(cause instanceof Error ? cause.message : 'Não foi possível exportar os dados.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-sp-4">
+        <div>
+          <h2 className="text-heading">Seus dados</h2>
+          <p className="text-label text-text-muted">
+            Baixe tudo o que você registrou, num arquivo JSON
+          </p>
+        </div>
+        <Button variant="secondary" disabled={busy} onClick={() => void baixar()}>
+          {busy ? 'Preparando…' : 'Exportar'}
+        </Button>
+      </div>
+      {erro ? <p role="alert" className="mt-sp-3 text-label text-danger">⚠ {erro}</p> : null}
+    </Card>
   );
 }
 

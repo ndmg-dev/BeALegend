@@ -246,4 +246,31 @@ async def montar_delta(session: AsyncSession, since: int) -> SyncDelta:
     )
 
 
-__all__ = ["DELTA_LIMIT", "aplicar_operacao", "cursor_atual", "montar_delta"]
+async def montar_exportacao(
+    session: AsyncSession, user_id: UUID
+) -> dict[str, list[dict[str, Any]]]:
+    """Todos os dados do usuario, agrupados por entidade — a base de
+    "baixar meus dados".
+
+    ``model.user_id == user_id`` explicito em toda entidade, mesmo nas que
+    tem RLS: os catalogos (``exercise``, ``food_item``...) tem linhas
+    globais (``user_id`` nulo, ``is_global=true``) que a policy de SELECT
+    deixa passar para qualquer um — sem este filtro, exportar "meus dados"
+    devolveria o catalogo inteiro do app, nao so o que o usuario criou.
+    Linhas apagadas ficam de fora: para quem pediu o export, olhar pra tras
+    e' sobre o que existe agora, nao sobre historico de delecao.
+    """
+    dados: dict[str, list[dict[str, Any]]] = {}
+    for nome, entidade in REGISTRY.items():
+        model = entidade.model
+        linhas = list(
+            await session.scalars(
+                select(model).where(model.user_id == user_id, model.deleted_at.is_(None))
+            )
+        )
+        if linhas:
+            dados[nome] = [_serializar(entidade, linha) for linha in linhas]
+    return dados
+
+
+__all__ = ["DELTA_LIMIT", "aplicar_operacao", "cursor_atual", "montar_delta", "montar_exportacao"]

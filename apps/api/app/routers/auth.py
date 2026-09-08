@@ -25,6 +25,7 @@ from app.security import (
     new_refresh_token,
     verify_password,
 )
+from app.sync.engine import montar_exportacao
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()
@@ -204,3 +205,17 @@ async def update_me(body: UserUpdate, user: CurrentUser, session: DbSession) -> 
     await session.commit()
     await session.refresh(user)
     return user
+
+
+@router.get("/export")
+async def exportar_dados(user: CurrentUser, session: DbSession) -> dict:
+    """Todos os dados do usuário, num JSON só — a mesma forma do delta de
+    sync, sem o cursor. Roda sob a RLS do próprio usuário; `montar_exportacao`
+    ainda filtra `user_id` explicitamente porque os catálogos globais
+    (exercícios, alimentos) têm linhas que a policy deixa passar pra todo
+    mundo."""
+    return {
+        "exportado_em": datetime.now(UTC).isoformat(),
+        "conta": {"email": user.email, "nome": user.nome, "criado_em": user.criado_em.isoformat()},
+        "dados": await montar_exportacao(session, user.id),
+    }
