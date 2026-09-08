@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Link } from 'react-router-dom';
 import { exportarDados } from '@/data/api/account';
+import { haAtualizacaoEmAndamento, verificarAtualizacoes } from '@/app/useServiceWorker';
 import { CATALOG } from '@/domain/achievements/catalog';
 import { db, type Habit } from '@/data/db/schema';
 import {
@@ -194,7 +195,56 @@ export function GoalsPage() {
 
       <NotificationSettings eligible={data.engaged} />
       <ExportarDadosCard />
+      <AtualizacoesCard />
     </section>
+  );
+}
+
+function AtualizacoesCard() {
+  const [estado, setEstado] = useState<'ocioso' | 'checando' | 'atualizando' | 'em_dia'>('ocioso');
+
+  async function checar() {
+    setEstado('checando');
+    const disponivel = await verificarAtualizacoes();
+    if (!disponivel) {
+      setEstado('em_dia');
+      return;
+    }
+    // O autoUpdate (vite.config) recarrega sozinho assim que a versão nova
+    // ativar — só damos um instante pra essa troca aparecer antes de dizer
+    // "sem novidade". Se recarregar antes disso, este estado nunca chega a
+    // ser lido por ninguém.
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    setEstado(haAtualizacaoEmAndamento() ? 'atualizando' : 'em_dia');
+  }
+
+  const rotuloBotao = { ocioso: 'Verificar', checando: 'Verificando…', atualizando: 'Aplicando…', em_dia: 'Verificar' }[estado];
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-sp-4">
+        <div>
+          <h2 className="text-heading">Atualizações</h2>
+          <p className="text-label text-text-muted">
+            O app se atualiza sozinho, mas pode demorar pra notar — verifique na mão se quiser.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          disabled={estado === 'checando' || estado === 'atualizando'}
+          onClick={() => void checar()}
+        >
+          {rotuloBotao}
+        </Button>
+      </div>
+      {estado === 'em_dia' ? (
+        <p className="mt-sp-3 text-label text-text-muted">Você já está na versão mais recente.</p>
+      ) : estado === 'atualizando' ? (
+        <p className="mt-sp-3 text-label text-nutricao-300">
+          Encontrou uma versão nova — a tela vai recarregar sozinha em instantes.
+        </p>
+      ) : null}
+    </Card>
   );
 }
 
