@@ -101,6 +101,7 @@ export function NotificationSettings({ eligible }: { eligible: boolean }) {
           <PreferenceToggle label="Lembretes das refeições" checked={config.preferences.refeicao_enabled} onChange={(value) => void patchPreferences({ refeicao_enabled: value })} />
           <PreferenceToggle label="Resumo no domingo" checked={config.preferences.resumo_semanal_enabled} onChange={(value) => void patchPreferences({ resumo_semanal_enabled: value })} />
           {config.preferences.resumo_semanal_enabled ? <TimePreference label="Horário do resumo" value={config.preferences.resumo_horario} onChange={(value) => void patchPreferences({ resumo_horario: value })} /> : null}
+          <PreferenceToggle label="Conquista desbloqueada" checked={config.preferences.conquista_enabled} onChange={(value) => void patchPreferences({ conquista_enabled: value })} />
         </div>
       ) : null}
       {config ? (

@@ -51,6 +51,10 @@ class NotificationPreference(Base, TimestampMixin):
     # Opt-in explícito: manda um resumo dos registros alimentares para um
     # provider de IA externo. Desligado por padrão — é dado sensível.
     insights_ia_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Push de "conquista desbloqueada" — dispara quando o achievement_unlock
+    # chega pelo /sync/batch, então funciona mesmo se o desbloqueio aconteceu
+    # com o app fechado ou offline (o cliente reenvia ao voltar à rede).
+    conquista_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
 class NotificationDelivery(Base):

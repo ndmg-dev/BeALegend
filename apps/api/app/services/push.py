@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 from datetime import UTC, date, datetime, time
+from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pywebpush import WebPushException, webpush
@@ -169,6 +170,55 @@ async def _meal_payloads(
                 )
             )
     return result
+
+
+async def notify_achievement_unlock(
+    session: AsyncSession, user_id: UUID, achievement_key: str, desbloqueado_em: datetime
+) -> int:
+    """Push de "conquista desbloqueada" — chamado pelo router de sync logo
+    após um `achievement_unlock` ser aplicado.
+
+    Não porta o catálogo (nomes/tiers) para o servidor: o payload é genérico
+    de propósito e a tela de conquistas é quem explica qual foi ao abrir. O
+    catálogo é dado versionado no cliente (`domain/achievements/catalog.ts`);
+    duplicá-lo aqui criaria uma segunda fonte de verdade para manter em sync.
+
+    `scheduled_for=desbloqueado_em` é a chave de deduplicação do
+    `_send_once`: estável por desbloqueio (o `achievement_key` é único por
+    usuário), então um reenvio da mesma operação de sync — outbox
+    reconstruída, retry após timeout — nunca dispara um segundo push.
+    """
+    if not settings.vapid_private_key or not settings.vapid_public_key:
+        return 0
+
+    preference = await session.get(NotificationPreference, user_id)
+    if preference is not None and not preference.conquista_enabled:
+        return 0
+
+    subscriptions = list(
+        await session.scalars(
+            select(PushSubscription).where(
+                PushSubscription.user_id == user_id, PushSubscription.active.is_(True)
+            )
+        )
+    )
+    if not subscriptions:
+        return 0
+
+    payload = {
+        "title": "Conquista desbloqueada!",
+        "body": "Toque para ver qual foi.",
+        "url": "/conquistas",
+        "tag": f"achievement-{achievement_key}",
+    }
+    sent = 0
+    for subscription in subscriptions:
+        sent += int(
+            await _send_once(
+                session, subscription, f"achievement:{achievement_key}", desbloqueado_em, payload
+            )
+        )
+    return sent
 
 
 async def dispatch_due_notifications(session: AsyncSession, now: datetime | None = None) -> int:
