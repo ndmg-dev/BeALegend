@@ -34,6 +34,7 @@ def _preference_out(row: NotificationPreference | None) -> NotificationPreferenc
         resumo_horario=row.resumo_horario,
         insights_ia_enabled=row.insights_ia_enabled,
         conquista_enabled=row.conquista_enabled,
+        parceiro_enabled=row.parceiro_enabled,
     )
 
 

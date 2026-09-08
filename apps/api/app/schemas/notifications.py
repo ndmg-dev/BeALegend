@@ -26,6 +26,7 @@ class NotificationPreferenceOut(BaseModel):
     resumo_horario: time = time(18, 0)
     insights_ia_enabled: bool = False
     conquista_enabled: bool = True
+    parceiro_enabled: bool = True
 
 
 class NotificationPreferencePatch(BaseModel):
@@ -37,6 +38,7 @@ class NotificationPreferencePatch(BaseModel):
     resumo_horario: time | None = None
     insights_ia_enabled: bool | None = None
     conquista_enabled: bool | None = None
+    parceiro_enabled: bool | None = None
 
 
 class NotificationConfigOut(BaseModel):

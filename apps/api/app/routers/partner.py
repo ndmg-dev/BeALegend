@@ -10,6 +10,7 @@ roda sob a RLS de quem pergunta — a policy de `partner_link` (requester_id
 devolvem o vínculo de outra dupla de usuários.
 """
 
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -23,9 +24,11 @@ from app.ids import uuid7
 from app.models import PartnerLink, User
 from app.routers.training import hoje_no_fuso
 from app.schemas.partner import PartnerInviteIn, PartnerLinkOut, PartnerSummaryOut
+from app.services.push import notify_partner_accepted, notify_partner_invite
 from app.services.weekly_summary import build_partner_summary
 
 router = APIRouter(prefix="/partners", tags=["partners"])
+log = logging.getLogger("bealegend.partners")
 
 
 def _not_found(detail: str) -> ProblemException:
@@ -83,6 +86,14 @@ async def convidar(body: PartnerInviteIn, user: CurrentUser, session: DbSession)
     session.add(link)
     await session.commit()
     await session.refresh(link)
+
+    try:
+        await notify_partner_invite(alvo.id, user.email, link.id, link.criado_em)
+    except Exception:
+        # Push e' best-effort: o convite ja' foi criado e comitado, uma
+        # falha de rede/VAPID aqui nao pode derrubar a resposta do endpoint.
+        log.warning("falha ao notificar convite de parceiro", exc_info=True)
+
     return await _link_out(session, link, user.id)
 
 
@@ -105,6 +116,12 @@ async def aceitar(link_id: UUID, user: CurrentUser, session: DbSession) -> Partn
     link.respondido_em = datetime.now(UTC)
     await session.commit()
     await session.refresh(link)
+
+    try:
+        await notify_partner_accepted(link.requester_id, user.email, link.id, link.respondido_em)
+    except Exception:
+        log.warning("falha ao notificar aceite de parceiro", exc_info=True)
+
     return await _link_out(session, link, user.id)
 
 

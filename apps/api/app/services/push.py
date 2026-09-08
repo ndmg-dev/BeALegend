@@ -7,7 +7,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pywebpush import WebPushException, webpush
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 from app.config import get_settings
 from app.ids import uuid7
@@ -172,27 +173,27 @@ async def _meal_payloads(
     return result
 
 
-async def notify_achievement_unlock(
-    session: AsyncSession, user_id: UUID, achievement_key: str, desbloqueado_em: datetime
+async def _notify_user(
+    session: AsyncSession,
+    user_id: UUID,
+    *,
+    enabled_field: str,
+    kind: str,
+    scheduled_for: datetime,
+    payload: dict[str, str],
 ) -> int:
-    """Push de "conquista desbloqueada" — chamado pelo router de sync logo
-    após um `achievement_unlock` ser aplicado.
-
-    Não porta o catálogo (nomes/tiers) para o servidor: o payload é genérico
-    de propósito e a tela de conquistas é quem explica qual foi ao abrir. O
-    catálogo é dado versionado no cliente (`domain/achievements/catalog.ts`);
-    duplicá-lo aqui criaria uma segunda fonte de verdade para manter em sync.
-
-    `scheduled_for=desbloqueado_em` é a chave de deduplicação do
-    `_send_once`: estável por desbloqueio (o `achievement_key` é único por
-    usuário), então um reenvio da mesma operação de sync — outbox
-    reconstruída, retry após timeout — nunca dispara um segundo push.
+    """Núcleo comum a todo push disparado por um evento pontual (não pelo
+    `dispatch_due_notifications` agendado): checa VAPID, a preferência do
+    usuário (campo `enabled_field` em `NotificationPreference` — ausência de
+    linha vale como permitido, mesmo default do resto do app) e as
+    assinaturas ativas, depois envia via `_send_once` — que é quem garante a
+    deduplicação por `(subscription_id, kind, scheduled_for)`.
     """
     if not settings.vapid_private_key or not settings.vapid_public_key:
         return 0
 
     preference = await session.get(NotificationPreference, user_id)
-    if preference is not None and not preference.conquista_enabled:
+    if preference is not None and not getattr(preference, enabled_field):
         return 0
 
     subscriptions = list(
@@ -205,20 +206,116 @@ async def notify_achievement_unlock(
     if not subscriptions:
         return 0
 
-    payload = {
-        "title": "Conquista desbloqueada!",
-        "body": "Toque para ver qual foi.",
-        "url": "/conquistas",
-        "tag": f"achievement-{achievement_key}",
-    }
     sent = 0
     for subscription in subscriptions:
-        sent += int(
-            await _send_once(
-                session, subscription, f"achievement:{achievement_key}", desbloqueado_em, payload
-            )
-        )
+        sent += int(await _send_once(session, subscription, kind, scheduled_for, payload))
     return sent
+
+
+async def notify_achievement_unlock(
+    session: AsyncSession, user_id: UUID, achievement_key: str, desbloqueado_em: datetime
+) -> int:
+    """Push de "conquista desbloqueada" — chamado pelo router de sync logo
+    após um `achievement_unlock` ser aplicado.
+
+    Não porta o catálogo (nomes/tiers) para o servidor: o payload é genérico
+    de propósito e a tela de conquistas é quem explica qual foi ao abrir. O
+    catálogo é dado versionado no cliente (`domain/achievements/catalog.ts`);
+    duplicá-lo aqui criaria uma segunda fonte de verdade para manter em sync.
+
+    `scheduled_for=desbloqueado_em` é a chave de deduplicação: estável por
+    desbloqueio (o `achievement_key` é único por usuário), então um reenvio
+    da mesma operação de sync — outbox reconstruída, retry após timeout —
+    nunca dispara um segundo push.
+    """
+    return await _notify_user(
+        session, user_id,
+        enabled_field="conquista_enabled",
+        kind=f"achievement:{achievement_key}",
+        scheduled_for=desbloqueado_em,
+        payload={
+            "title": "Conquista desbloqueada!",
+            "body": "Toque para ver qual foi.",
+            "url": "/conquistas",
+            "tag": f"achievement-{achievement_key}",
+        },
+    )
+
+
+async def _notify_other_user(
+    user_id: UUID,
+    *,
+    enabled_field: str,
+    kind: str,
+    scheduled_for: datetime,
+    payload: dict[str, str],
+) -> int:
+    """Como `_notify_user`, mas abre a própria sessão como OWNER (bypassa
+    RLS) em vez de reusar a do request.
+
+    Convite e aceite de parceiro são disparados por **outra** conta, não
+    pela dona da assinatura de push: a sessão do endpoint que processou o
+    convite está com `app.user_id` = quem convidou, e a policy de
+    `push_subscription`/`notification_preference` só deixa cada um ler a
+    própria linha. Não dá pra "pegar emprestada" a sessão do request —
+    precisa da mesma saída que `POST /internal/tick` já usa (motor próprio
+    com a URL do owner, descartado no fim). Evento raro (convite/aceite),
+    não um hot path: abrir e fechar um engine aqui custa bem menos do que
+    fazer isso a cada minuto, que é o que o cron já faz.
+    """
+    engine = create_async_engine(
+        get_settings().database_owner_url,
+        poolclass=NullPool,
+        connect_args={"statement_cache_size": 0},
+    )
+    OwnerSession = async_sessionmaker(engine, expire_on_commit=False)
+    try:
+        async with OwnerSession() as session:
+            return await _notify_user(
+                session, user_id,
+                enabled_field=enabled_field, kind=kind,
+                scheduled_for=scheduled_for, payload=payload,
+            )
+    finally:
+        await engine.dispose()
+
+
+async def notify_partner_invite(
+    receiver_id: UUID, requester_email: str, link_id: UUID, criado_em: datetime
+) -> int:
+    """Push pra quem recebeu um convite de parceiro. `scheduled_for=criado_em`
+    dedupe por vínculo — reenviar o mesmo POST /partners/invite (ex.: o
+    cliente retenta após timeout de rede) nunca duplica o push."""
+    return await _notify_other_user(
+        receiver_id,
+        enabled_field="parceiro_enabled",
+        kind=f"partner-invite:{link_id}",
+        scheduled_for=criado_em,
+        payload={
+            "title": "Novo convite de parceiro",
+            "body": f"{requester_email} quer acompanhar seu progresso.",
+            "url": "/parceiro",
+            "tag": f"partner-invite-{link_id}",
+        },
+    )
+
+
+async def notify_partner_accepted(
+    requester_id: UUID, receiver_email: str, link_id: UUID, respondido_em: datetime
+) -> int:
+    """Push pra quem enviou o convite, quando o outro lado aceita."""
+    return await _notify_other_user(
+        requester_id,
+        enabled_field="parceiro_enabled",
+        kind=f"partner-accept:{link_id}",
+        scheduled_for=respondido_em,
+        payload={
+            "title": "Convite aceito!",
+            "body": f"{receiver_email} aceitou acompanhar o progresso com você.",
+            "url": "/parceiro",
+            "tag": f"partner-accept-{link_id}",
+        },
+    )
 
 
 async def dispatch_due_notifications(session: AsyncSession, now: datetime | None = None) -> int:

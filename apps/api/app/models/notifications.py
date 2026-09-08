@@ -55,6 +55,8 @@ class NotificationPreference(Base, TimestampMixin):
     # chega pelo /sync/batch, então funciona mesmo se o desbloqueio aconteceu
     # com o app fechado ou offline (o cliente reenvia ao voltar à rede).
     conquista_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    # Push de convite/aceite de vínculo de parceiro.
+    parceiro_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
 
 class NotificationDelivery(Base):

@@ -10,6 +10,7 @@ const preferencesSchema = z.object({
   resumo_horario: z.string(),
   insights_ia_enabled: z.boolean(),
   conquista_enabled: z.boolean(),
+  parceiro_enabled: z.boolean(),
 });
 export type NotificationPreferences = z.infer<typeof preferencesSchema>;
 

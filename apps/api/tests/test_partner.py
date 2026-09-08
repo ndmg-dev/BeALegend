@@ -8,7 +8,12 @@ a policy dela não foi tocada pela migration 0012.
 import uuid
 from datetime import date
 
+from app.services.push import settings as push_settings
 from tests.conftest import auth, register
+
+ENDPOINT_A = "https://push.example/subscription/partner-device-a"
+ENDPOINT_B = "https://push.example/subscription/partner-device-b"
+KEYS = {"p256dh": "p" * 80, "auth": "a" * 24}
 
 
 def op(entidade, operacao, id_, payload):
@@ -36,6 +41,70 @@ async def registrar_treino_concluido(client, token, dia: str):
         client, token,
         op("session", "create", session_id, {"data": dia, "status": "concluida"}),
     )
+
+
+async def _assinar_push(client, token, endpoint: str) -> None:
+    resp = await client.post(
+        "/notifications/subscriptions", json={"endpoint": endpoint, "keys": KEYS},
+        headers=auth(token),
+    )
+    assert resp.status_code == 204, resp.text
+
+
+async def test_convite_dispara_push_para_o_convidado(client, monkeypatch):
+    _, token_a = await register(client)
+    email_b, token_b = await register(client)
+    await _assinar_push(client, token_b, ENDPOINT_B)
+
+    chamadas = []
+    monkeypatch.setattr("app.services.push.webpush", lambda **kw: chamadas.append(kw))
+    monkeypatch.setattr(push_settings, "vapid_public_key", "public-test-key")
+    monkeypatch.setattr(push_settings, "vapid_private_key", "private-test-key")
+
+    resp = await client.post("/partners/invite", json={"email": email_b}, headers=auth(token_a))
+    assert resp.status_code == 201, resp.text
+
+    assert len(chamadas) == 1
+    assert "convite" in chamadas[0]["data"].lower()
+
+
+async def test_aceite_dispara_push_para_quem_convidou(client, monkeypatch):
+    _, token_a = await register(client)
+    await _assinar_push(client, token_a, ENDPOINT_A)
+    email_b, token_b = await register(client)
+    link_id = (
+        await client.post("/partners/invite", json={"email": email_b}, headers=auth(token_a))
+    ).json()["id"]
+
+    chamadas = []
+    monkeypatch.setattr("app.services.push.webpush", lambda **kw: chamadas.append(kw))
+    monkeypatch.setattr(push_settings, "vapid_public_key", "public-test-key")
+    monkeypatch.setattr(push_settings, "vapid_private_key", "private-test-key")
+
+    resp = await client.post(f"/partners/{link_id}/accept", headers=auth(token_b))
+    assert resp.status_code == 200, resp.text
+
+    assert len(chamadas) == 1
+    assert "aceit" in chamadas[0]["data"].lower()
+
+
+async def test_push_de_convite_respeita_preferencia_desligada(client, monkeypatch):
+    _, token_a = await register(client)
+    email_b, token_b = await register(client)
+    await _assinar_push(client, token_b, ENDPOINT_B)
+    resp = await client.patch(
+        "/notifications/preferences", json={"parceiro_enabled": False}, headers=auth(token_b)
+    )
+    assert resp.status_code == 200, resp.text
+
+    chamadas = []
+    monkeypatch.setattr("app.services.push.webpush", lambda **kw: chamadas.append(kw))
+    monkeypatch.setattr(push_settings, "vapid_public_key", "public-test-key")
+    monkeypatch.setattr(push_settings, "vapid_private_key", "private-test-key")
+
+    await client.post("/partners/invite", json={"email": email_b}, headers=auth(token_a))
+
+    assert chamadas == []
 
 
 async def test_convite_e_aceite(client):
